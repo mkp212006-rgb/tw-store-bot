@@ -231,12 +231,24 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not pedido.get("link"):
     pedido["link"] = update.message.text.strip()
 
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✅ Confirmar pedido", callback_data="confirmar_pedido")]
+    ])
+
     await update.message.reply_text(
-        "✅ Link recebido!\n\nAgora toque no botão abaixo para finalizar seu pedido.",
-        reply_markup=InlineKeyboardMarkup([
-            [btn("✅ Confirmar pedido", "confirmar_pedido")]
-        ]),
-        disable_web_page_preview=True,
+        f"""
+✅ Link recebido!
+
+📋 Resumo do Pedido
+
+📦 Serviço: {pedido.get('servico', 'Não informado')}
+🔢 Quantidade: {pedido.get('quantidade', 'Não informada')}
+💰 Valor: R$ {pedido.get('valor', '0,00')}
+🔗 Link: {pedido['link']}
+
+Toque no botão abaixo para continuar para a etapa de pagamento.
+""",
+        reply_markup=keyboard
     )
         return
 
