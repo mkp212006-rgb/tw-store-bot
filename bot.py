@@ -259,7 +259,7 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Já recebi o link/@. Agora toque em *Confirmar pedido* para ir ao pagamento.",
             parse_mode=ParseMode.MARKDOWN,
             reply_markup=InlineKeyboardMarkup([
-                [btn("✅ Confirmar pedido", "extra_pagamento")]
+                [btn("✅ Confirmar pedido", "confirmar_pedido")]
             ]),
             disable_web_page_preview=True,
         )
