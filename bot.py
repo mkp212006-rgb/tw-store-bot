@@ -215,13 +215,14 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             int(pedido["quantidade"].replace(".", ""))
         )
 
-        texto_pagamento = item["pagamento"]
+        texto_pagamento = item.get("pagamento") or CATALOGO["mensagens"]["pagamento"]
 
         await safe_edit_or_reply(
             update,
             texto_pagamento,
             InlineKeyboardMarkup([
-                [btn("✅ Pedido Confirmado", "finalizar_pedido")]
+                [btn("✅ Pedido Confirmado", "finalizar_pedido")],
+                [btn("⬅️ Voltar", f"servico:{pedido['servico_chave']}")]
             ])
         )
         return
