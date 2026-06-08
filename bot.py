@@ -221,7 +221,7 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             update,
             texto_pagamento,
             InlineKeyboardMarkup([
-                [btn("✅ Pedido Confirmado", "ir_pagamento")]
+                [btn("✅ Pedido Confirmado", "finalizar_pedido")]
             ])
         )
         return
