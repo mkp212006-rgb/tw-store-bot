@@ -1,0 +1,363 @@
+{
+  "loja": "TW STORE",
+  "pix": "ttwovendas@gmail.com",
+  "menus": {
+    "boas_vindas": "🚀 *Bem-vindo(a) à TW STORE!*\n\nSou o assistente virtual da loja. Aqui você encontra serviços digitais com atendimento organizado, entrega rápida e suporte dedicado.\n\nEscolha uma opção abaixo para continuar. 👇",
+    "catalogo": "🛍️ *Catálogo TW STORE*\n\nSelecione a categoria desejada para ver os detalhes.\nㅤ",
+    "instagram": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Instagram.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
+    "seguidores": "Você Selecionou o Catálogo de Seguidores, Aqui está alguns pacotes disponíveis.\nㅤ",
+    "curtidas": "❤️ *Curtidas para Instagram*\n\nPerfeito para melhorar a aparência das publicações e aumentar o engajamento.\n\n✅ Serviço para posts\n✅ Entrega prática\n✅ Atendimento antes da compra\nㅤ",
+    "visualizacoes": "👀 *Visualizações para Instagram*\n\nÓtimo para impulsionar vídeos, reels e conteúdos recentes.\n\n✅ Mais alcance\n✅ Processo simples\n✅ Suporte na finalização\nㅤ",
+    "iptv": "📺 *IPTV Livestream 4K*\n\nAssinatura com acesso pelo aplicativo.\n\n✅ Compatível com Android\n✅ Compatível com iPhone\n✅ Compatível com Smart TV\n\nPara consultar planos e disponibilidade, fale com o atendimento.",
+    "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nEnvie o serviço desejado e o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de pagar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
+    "atendimento": "📞 *Atendimento TW STORE*\n\nSua solicitação foi recebida.\n\nEnvie agora:\n• Serviço desejado\n• Quantidade\n• Link ou @ do perfil\n\n⏳ Um membro da equipe continuará o atendimento assim que possível.",
+    "como_pedir": "🧾 *Como fazer seu pedido*\n\n1️⃣ Escolha o serviço\n2️⃣ Envie o link ou @ solicitado\n3️⃣ Aguarde a conferência\n4️⃣ Receba as instruções de pagamento\n5️⃣ Envie o comprovante\n\nApós isso, seu pedido será encaminhado.",
+    "prazos": "⏰ *Prazos e Suporte*\n\nCada serviço possui um prazo diferente de início e conclusão.\n\nCaso tenha dúvidas, envie 1 para que possa ser transferido para alguém da equipe da TW Store. \nㅤ",
+    "transferir": "(🔎) Solicitação recebida! Estou transferindo você para um atendente da equipe da TW Store. Por favor, aguarde.. \nㅤ"
+  },
+  "passo_a_passo_compra": [
+    "1️⃣ Escolha o serviço",
+    "2️⃣ Envie o link ou @ solicitado",
+    "3️⃣ Aguarde a conferência",
+    "4️⃣ Receba as instruções de pagamento",
+    "5️⃣ Envie o comprovante",
+    "Após isso, seu pedido será encaminhado."
+  ],
+  "catalogos": {
+    "Seguidores": [
+      {
+        "quantidade": 100,
+        "quantidade_texto": "100",
+        "item": "Seguidores",
+        "valor": "0,30",
+        "mensagem_item": "Você Selecionou o pacote de *100 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      },
+      {
+        "quantidade": 200,
+        "quantidade_texto": "200",
+        "item": "Seguidores",
+        "valor": "0,40",
+        "mensagem_item": "Você Selecionou o pacote de *200 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      },
+      {
+        "quantidade": 300,
+        "quantidade_texto": "300",
+        "item": "Seguidores",
+        "valor": "0,55",
+        "mensagem_item": "Você Selecionou o pacote de *300 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
+        "valor_observacao": "calculado proporcionalmente porque esta quantidade não estava no arquivo original"
+      },
+      {
+        "quantidade": 400,
+        "quantidade_texto": "400",
+        "item": "Seguidores",
+        "valor": "0,75",
+        "mensagem_item": "Você Selecionou o pacote de *400 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
+        "valor_observacao": "calculado proporcionalmente porque esta quantidade não estava no arquivo original"
+      },
+      {
+        "quantidade": 500,
+        "quantidade_texto": "500",
+        "item": "Seguidores",
+        "valor": "0,90",
+        "mensagem_item": "Você Selecionou o pacote de *500 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      },
+      {
+        "quantidade": 600,
+        "quantidade_texto": "600",
+        "item": "Seguidores",
+        "valor": "1,10",
+        "mensagem_item": "Você Selecionou o pacote de *600 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
+        "valor_observacao": "calculado proporcionalmente porque esta quantidade não estava no arquivo original"
+      },
+      {
+        "quantidade": 700,
+        "quantidade_texto": "700",
+        "item": "Seguidores",
+        "valor": "1,30",
+        "mensagem_item": "Você Selecionou o pacote de *700 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      },
+      {
+        "quantidade": 800,
+        "quantidade_texto": "800",
+        "item": "Seguidores",
+        "valor": "1,45",
+        "mensagem_item": "Você Selecionou o pacote de *800 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
+        "valor_observacao": "calculado proporcionalmente porque esta quantidade não estava no arquivo original"
+      },
+      {
+        "quantidade": 900,
+        "quantidade_texto": "900",
+        "item": "Seguidores",
+        "valor": "1,60",
+        "mensagem_item": "Você Selecionou o pacote de *900 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      },
+      {
+        "quantidade": 1000,
+        "quantidade_texto": "1.000",
+        "item": "Seguidores",
+        "valor": "1,80",
+        "mensagem_item": "Você Selecionou o pacote de *1.000 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      },
+      {
+        "quantidade": 2000,
+        "quantidade_texto": "2.000",
+        "item": "Seguidores",
+        "valor": "3,60",
+        "mensagem_item": "Você Selecionou o pacote de *2.000 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
+        "valor_observacao": "calculado proporcionalmente porque esta quantidade não estava no arquivo original"
+      },
+      {
+        "quantidade": 3000,
+        "quantidade_texto": "3.000",
+        "item": "Seguidores",
+        "valor": "5,40",
+        "mensagem_item": "Você Selecionou o pacote de *3.000 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      },
+      {
+        "quantidade": 4000,
+        "quantidade_texto": "4.000",
+        "item": "Seguidores",
+        "valor": "7,20",
+        "mensagem_item": "Você Selecionou o pacote de *4.000 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
+        "valor_observacao": "calculado proporcionalmente porque esta quantidade não estava no arquivo original"
+      },
+      {
+        "quantidade": 5000,
+        "quantidade_texto": "5.000",
+        "item": "Seguidores",
+        "valor": "9,00",
+        "mensagem_item": "Você Selecionou o pacote de *5.000 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
+        "valor_observacao": "calculado proporcionalmente porque esta quantidade não estava no arquivo original"
+      },
+      {
+        "quantidade": 10000,
+        "quantidade_texto": "10.000",
+        "item": "Seguidores",
+        "valor": "17,70",
+        "mensagem_item": "Você Selecionou o pacote de *10.000 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ"
+      }
+    ],
+    "Curtidas": [
+      {
+        "quantidade": 100,
+        "quantidade_texto": "100",
+        "item": "Curtidas",
+        "valor": "0,10",
+        "mensagem_item": "Você Selecionou o pacote de *100 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 200,
+        "quantidade_texto": "200",
+        "item": "Curtidas",
+        "valor": "0,15",
+        "mensagem_item": "Você Selecionou o pacote de *200 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 300,
+        "quantidade_texto": "300",
+        "item": "Curtidas",
+        "valor": "0,20",
+        "mensagem_item": "Você Selecionou o pacote de *300 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 400,
+        "quantidade_texto": "400",
+        "item": "Curtidas",
+        "valor": "0,25",
+        "mensagem_item": "Você Selecionou o pacote de *400 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 500,
+        "quantidade_texto": "500",
+        "item": "Curtidas",
+        "valor": "0,30",
+        "mensagem_item": "Você Selecionou o pacote de *500 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 600,
+        "quantidade_texto": "600",
+        "item": "Curtidas",
+        "valor": "0,35",
+        "mensagem_item": "Você Selecionou o pacote de *600 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 700,
+        "quantidade_texto": "700",
+        "item": "Curtidas",
+        "valor": "0,45",
+        "mensagem_item": "Você Selecionou o pacote de *700 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 800,
+        "quantidade_texto": "800",
+        "item": "Curtidas",
+        "valor": "0,50",
+        "mensagem_item": "Você Selecionou o pacote de *800 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 900,
+        "quantidade_texto": "900",
+        "item": "Curtidas",
+        "valor": "0,55",
+        "mensagem_item": "Você Selecionou o pacote de *900 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 1000,
+        "quantidade_texto": "1.000",
+        "item": "Curtidas",
+        "valor": "0,60",
+        "mensagem_item": "Você Selecionou o pacote de *1.000 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 2000,
+        "quantidade_texto": "2.000",
+        "item": "Curtidas",
+        "valor": "1,10",
+        "mensagem_item": "Você Selecionou o pacote de *2.000 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 3000,
+        "quantidade_texto": "3.000",
+        "item": "Curtidas",
+        "valor": "1,60",
+        "mensagem_item": "Você Selecionou o pacote de *3.000 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 4000,
+        "quantidade_texto": "4.000",
+        "item": "Curtidas",
+        "valor": "2,10",
+        "mensagem_item": "Você Selecionou o pacote de *4.000 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 5000,
+        "quantidade_texto": "5.000",
+        "item": "Curtidas",
+        "valor": "2,60",
+        "mensagem_item": "Você Selecionou o pacote de *5.000 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 10000,
+        "quantidade_texto": "10.000",
+        "item": "Curtidas",
+        "valor": "5,00",
+        "mensagem_item": "Você Selecionou o pacote de *10.000 Curtidas*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link da publicação que o cliente informou. O perfil precisa estar público para a publicação ser encontrada.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      }
+    ],
+    "Visualizações": [
+      {
+        "quantidade": 100,
+        "quantidade_texto": "100",
+        "item": "Visualizações",
+        "valor": "0,05",
+        "mensagem_item": "Você Selecionou o pacote de *100 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 200,
+        "quantidade_texto": "200",
+        "item": "Visualizações",
+        "valor": "0,05",
+        "mensagem_item": "Você Selecionou o pacote de *200 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 300,
+        "quantidade_texto": "300",
+        "item": "Visualizações",
+        "valor": "0,05",
+        "mensagem_item": "Você Selecionou o pacote de *300 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 400,
+        "quantidade_texto": "400",
+        "item": "Visualizações",
+        "valor": "0,08",
+        "mensagem_item": "Você Selecionou o pacote de *400 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 500,
+        "quantidade_texto": "500",
+        "item": "Visualizações",
+        "valor": "0,10",
+        "mensagem_item": "Você Selecionou o pacote de *500 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 600,
+        "quantidade_texto": "600",
+        "item": "Visualizações",
+        "valor": "0,10",
+        "mensagem_item": "Você Selecionou o pacote de *600 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 700,
+        "quantidade_texto": "700",
+        "item": "Visualizações",
+        "valor": "0,12",
+        "mensagem_item": "Você Selecionou o pacote de *700 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 800,
+        "quantidade_texto": "800",
+        "item": "Visualizações",
+        "valor": "0,15",
+        "mensagem_item": "Você Selecionou o pacote de *800 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 900,
+        "quantidade_texto": "900",
+        "item": "Visualizações",
+        "valor": "0,18",
+        "mensagem_item": "Você Selecionou o pacote de *900 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 1000,
+        "quantidade_texto": "1.000",
+        "item": "Visualizações",
+        "valor": "0,20",
+        "mensagem_item": "Você Selecionou o pacote de *1.000 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 2000,
+        "quantidade_texto": "2.000",
+        "item": "Visualizações",
+        "valor": "0,30",
+        "mensagem_item": "Você Selecionou o pacote de *2.000 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 3000,
+        "quantidade_texto": "3.000",
+        "item": "Visualizações",
+        "valor": "0,40",
+        "mensagem_item": "Você Selecionou o pacote de *3.000 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 4000,
+        "quantidade_texto": "4.000",
+        "item": "Visualizações",
+        "valor": "0,50",
+        "mensagem_item": "Você Selecionou o pacote de *4.000 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 5000,
+        "quantidade_texto": "5.000",
+        "item": "Visualizações",
+        "valor": "0,60",
+        "mensagem_item": "Você Selecionou o pacote de *5.000 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      },
+      {
+        "quantidade": 10000,
+        "quantidade_texto": "10.000",
+        "item": "Visualizações",
+        "valor": "1,00",
+        "mensagem_item": "Você Selecionou o pacote de *10.000 Visualizações*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do vídeo/reels que o cliente informou. O perfil precisa estar público para o conteúdo ser encontrado.\n\n*Observação:* Após o envio do link Digite 1 para prosseguir. "
+      }
+    ],
+    "IPTV Livestream 4K": [
+      {
+        "item": "IPTV Livestream 4K",
+        "valor": "consultar",
+        "mensagem_item": "📺 *IPTV Livestream 4K*\n\nAssinatura com acesso pelo aplicativo.\n\n✅ Compatível com Android\n✅ Compatível com iPhone\n✅ Compatível com Smart TV\n\nPara consultar planos e disponibilidade, fale com o atendimento."
+      }
+    ]
+  }
+}
