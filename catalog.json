@@ -1,0 +1,267 @@
+{
+  "store_name": "TW STORE",
+  "owner_whatsapp": "5512997793285",
+  "categories": [
+    {
+      "id": "seguidores",
+      "name": "Seguidores Instagram",
+      "description": "Pacotes para perfil do Instagram.",
+      "ask": "Envie o @ do perfil ou link do perfil.",
+      "items": [
+        {
+          "quantity": 100,
+          "label": "100 Seguidores",
+          "price": "0,30"
+        },
+        {
+          "quantity": 200,
+          "label": "200 Seguidores",
+          "price": "0,40"
+        },
+        {
+          "quantity": 300,
+          "label": "300 Seguidores",
+          "price": "0,60"
+        },
+        {
+          "quantity": 400,
+          "label": "400 Seguidores",
+          "price": "0,75"
+        },
+        {
+          "quantity": 500,
+          "label": "500 Seguidores",
+          "price": "0,90"
+        },
+        {
+          "quantity": 600,
+          "label": "600 Seguidores",
+          "price": "1,10"
+        },
+        {
+          "quantity": 700,
+          "label": "700 Seguidores",
+          "price": "1,30"
+        },
+        {
+          "quantity": 800,
+          "label": "800 Seguidores",
+          "price": "1,45"
+        },
+        {
+          "quantity": 900,
+          "label": "900 Seguidores",
+          "price": "1,60"
+        },
+        {
+          "quantity": 1000,
+          "label": "1.000 Seguidores",
+          "price": "1,80"
+        },
+        {
+          "quantity": 2000,
+          "label": "2.000 Seguidores",
+          "price": "3,60"
+        },
+        {
+          "quantity": 3000,
+          "label": "3.000 Seguidores",
+          "price": "5,40"
+        },
+        {
+          "quantity": 4000,
+          "label": "4.000 Seguidores",
+          "price": "7,20"
+        },
+        {
+          "quantity": 5000,
+          "label": "5.000 Seguidores",
+          "price": "9,00"
+        }
+      ]
+    },
+    {
+      "id": "curtidas",
+      "name": "Curtidas Instagram",
+      "description": "Curtidas para publicações do Instagram.",
+      "ask": "Envie o link da publicação.",
+      "items": [
+        {
+          "quantity": 100,
+          "label": "100 Curtidas",
+          "price": "0,10"
+        },
+        {
+          "quantity": 200,
+          "label": "200 Curtidas",
+          "price": "0,15"
+        },
+        {
+          "quantity": 300,
+          "label": "300 Curtidas",
+          "price": "0,20"
+        },
+        {
+          "quantity": 400,
+          "label": "400 Curtidas",
+          "price": "0,25"
+        },
+        {
+          "quantity": 500,
+          "label": "500 Curtidas",
+          "price": "0,30"
+        },
+        {
+          "quantity": 600,
+          "label": "600 Curtidas",
+          "price": "0,35"
+        },
+        {
+          "quantity": 700,
+          "label": "700 Curtidas",
+          "price": "0,45"
+        },
+        {
+          "quantity": 800,
+          "label": "800 Curtidas",
+          "price": "0,50"
+        },
+        {
+          "quantity": 900,
+          "label": "900 Curtidas",
+          "price": "0,55"
+        },
+        {
+          "quantity": 1000,
+          "label": "1.000 Curtidas",
+          "price": "0,60"
+        },
+        {
+          "quantity": 2000,
+          "label": "2.000 Curtidas",
+          "price": "1,10"
+        },
+        {
+          "quantity": 3000,
+          "label": "3.000 Curtidas",
+          "price": "1,60"
+        },
+        {
+          "quantity": 4000,
+          "label": "4.000 Curtidas",
+          "price": "2,10"
+        },
+        {
+          "quantity": 5000,
+          "label": "5.000 Curtidas",
+          "price": "2,60"
+        }
+      ]
+    },
+    {
+      "id": "visualizacoes",
+      "name": "Visualizações Instagram",
+      "description": "Visualizações para vídeos, reels e conteúdos do Instagram.",
+      "ask": "Envie o link do vídeo/reels/conteúdo.",
+      "items": [
+        {
+          "quantity": 100,
+          "label": "100 Visualizações",
+          "price": "0,05"
+        },
+        {
+          "quantity": 200,
+          "label": "200 Visualizações",
+          "price": "0,05"
+        },
+        {
+          "quantity": 300,
+          "label": "300 Visualizações",
+          "price": "0,05"
+        },
+        {
+          "quantity": 400,
+          "label": "400 Visualizações",
+          "price": "0,08"
+        },
+        {
+          "quantity": 500,
+          "label": "500 Visualizações",
+          "price": "0,10"
+        },
+        {
+          "quantity": 600,
+          "label": "600 Visualizações",
+          "price": "0,10"
+        },
+        {
+          "quantity": 700,
+          "label": "700 Visualizações",
+          "price": "0,12"
+        },
+        {
+          "quantity": 800,
+          "label": "800 Visualizações",
+          "price": "0,15"
+        },
+        {
+          "quantity": 900,
+          "label": "900 Visualizações",
+          "price": "0,18"
+        },
+        {
+          "quantity": 1000,
+          "label": "1.000 Visualizações",
+          "price": "0,20"
+        },
+        {
+          "quantity": 2000,
+          "label": "2.000 Visualizações",
+          "price": "0,30"
+        },
+        {
+          "quantity": 3000,
+          "label": "3.000 Visualizações",
+          "price": "0,40"
+        },
+        {
+          "quantity": 4000,
+          "label": "4.000 Visualizações",
+          "price": "0,50"
+        },
+        {
+          "quantity": 5000,
+          "label": "5.000 Visualizações",
+          "price": "0,60"
+        }
+      ]
+    },
+    {
+      "id": "iptv",
+      "name": "IPTV Livestream 4K",
+      "description": "Assinatura com acesso pelo aplicativo. Compatível com Android, iPhone e Smart TV.",
+      "ask": "Envie o modelo do aparelho e o tempo de assinatura desejado.",
+      "items": [
+        {
+          "quantity": 1,
+          "label": "Plano mensal IPTV Livestream 4K",
+          "price": "15,00"
+        }
+      ]
+    }
+  ],
+  "faq": [
+    {
+      "q": "Como faço um pedido?",
+      "a": "Escolha o catálogo, selecione a quantidade e envie o link ou @ solicitado."
+    },
+    {
+      "q": "Quanto tempo demora?",
+      "a": "O prazo varia conforme o serviço e a demanda do momento."
+    },
+    {
+      "q": "Posso tirar dúvidas antes de pagar?",
+      "a": "Sim. Use a opção Falar com Atendimento."
+    }
+  ]
+}
