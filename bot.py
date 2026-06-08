@@ -236,21 +236,10 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ])
 
     await update.message.reply_text(
-        f"""
-✅ Link recebido!
-
-📋 Resumo do Pedido
-
-📦 Serviço: {pedido.get('servico', 'Não informado')}
-🔢 Quantidade: {pedido.get('quantidade', 'Não informada')}
-💰 Valor: R$ {pedido.get('valor', '0,00')}
-🔗 Link: {pedido['link']}
-
-Toque no botão abaixo para continuar para a etapa de pagamento.
-""",
+        "✅ Link recebido!\n\nToque em ✅ Confirmar pedido para continuar.",
         reply_markup=keyboard
     )
-        return
+    return
 
     await update.message.reply_text(
         "Já recebi o link/@. Agora toque em *Confirmar pedido* para finalizar.",
