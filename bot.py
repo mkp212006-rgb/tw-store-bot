@@ -252,17 +252,17 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not pedido.get("link"):
-    pedido["link"] = update.message.text.strip()
+        pedido["link"] = update.message.text.strip()
 
-    await update.message.reply_text(
-        "Já recebi o link/@. Agora toque em *Confirmar pedido* para ir ao pagamento.",
-        parse_mode=ParseMode.MARKDOWN,
-        reply_markup=InlineKeyboardMarkup([
-            [btn("💳 Pagamento", "extra_pagamento")]
-        ]),
-        disable_web_page_preview=True,
-    )
-    return
+        await update.message.reply_text(
+            "Já recebi o link/@. Agora toque em *Confirmar pedido* para ir ao pagamento.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=InlineKeyboardMarkup([
+                [btn("✅ Confirmar pedido", "extra_pagamento")]
+            ]),
+            disable_web_page_preview=True,
+        )
+        return
 
     await update.message.reply_text(
         "Já recebi o link/@. Agora toque em *Confirmar pedido* para finalizar.",
