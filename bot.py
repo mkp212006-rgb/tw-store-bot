@@ -257,7 +257,7 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "Já recebi o link/@. Agora toque em *Confirmar pedido* para finalizar.",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=InlineKeyboardMarkup([[btn("✅ Confirmar pedido", "confirmar_pedido")], [btn("🏠 Cancelar / Menu", "voltar:inicio")]]),
+            reply_markup=InlineKeyboardMarkup([[btn("✅ Confirmar pedido", "finalizar_pedido")], [btn("🏠 Cancelar / Menu", "voltar:inicio")]]),
             disable_web_page_preview=True,
         )
         return
@@ -265,7 +265,7 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Já recebi o link/@. Agora toque em *Confirmar pedido* para finalizar.",
         parse_mode=ParseMode.MARKDOWN,
-        reply_markup=InlineKeyboardMarkup([[btn("✅ Confirmar pedido", "confirmar_pedido")]]),
+        reply_markup=InlineKeyboardMarkup([[btn("✅ Confirmar pedido", "finalizar_pedido")]]),
     )
 
 
