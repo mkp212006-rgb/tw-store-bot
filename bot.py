@@ -2,7 +2,7 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, ContextTypes, filters
 
-TOKEN = 8833072850:AAFhQzlZ_SUVVqDqV7Q7wdHS-FK38QZTOlI
+TOKEN = 8833072850 : AAFhQzlZ_SUVVqDqV7Q7wdHS-FK38QZTOlI
 WHATSAPP = os.getenv("WHATSAPP_CONTATO", "")
 
 SEGUIDORES = [
