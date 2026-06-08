@@ -229,25 +229,15 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not pedido.get("link"):
-        pedido["link"] = update.message.text.strip()
-        item = get_item(pedido["servico_chave"], int(pedido["quantidade"].replace(".", "")))
+    pedido["link"] = update.message.text.strip()
 
-        resumo_cliente = (
-            f'{item["mensagem_confirmar"]}\n\n'
-            f'🧾 *Resumo do pedido*\n'
-            f'• Catálogo: {pedido["catalogo"]}\n'
-            f'• Serviço: {pedido["servico"]}\n'
-            f'• Quantidade: {pedido["quantidade"]}\n'
-            f'• Valor: R$ {pedido["valor"]}\n'
-            f'• Link/@ enviado: {pedido["link"]}\n\n'
-            f'Toque em *Confirmar pedido* para finalizar.'
-        )
-        await update.message.reply_text(
-            resumo_cliente,
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=InlineKeyboardMarkup([[btn("✅ Confirmar pedido", "confirmar_pedido")], [btn("🏠 Cancelar / Menu", "voltar:inicio")]]),
-            disable_web_page_preview=True,
-        )
+    await update.message.reply_text(
+        "✅ Link recebido!\n\nAgora toque no botão abaixo para finalizar seu pedido.",
+        reply_markup=InlineKeyboardMarkup([
+            [btn("✅ Confirmar pedido", "confirmar_pedido")]
+        ]),
+        disable_web_page_preview=True,
+    )
         return
 
     await update.message.reply_text(
