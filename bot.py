@@ -205,24 +205,24 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "confirmar_pedido":
         pedido = context.user_data.get("pedido")
+
         if not pedido:
-            await safe_edit_or_reply(update, "Não encontrei um pedido em andamento. Toque em /start para começar novamente.")
+            await safe_edit_or_reply(update, "Não encontrei um pedido em andamento.")
             return
 
-        item = get_item(pedido["servico_chave"], int(pedido["quantidade"].replace(".", "")))
-        texto_pagamento = (
-            f'{item["mensagem_confirmar"]}\n\n'
-            f'🧾 *Resumo do pedido*\n'
-            f'• Catálogo: {pedido["catalogo"]}\n'
-            f'• Serviço: {pedido["servico"]}\n'
-            f'• Quantidade: {pedido["quantidade"]}\n'
-            f'• Valor: R$ {pedido["valor"]}\n'
-            f'• Link/@ enviado: {pedido["link"]}'
+        item = get_item(
+            pedido["servico_chave"],
+            int(pedido["quantidade"].replace(".", ""))
         )
+
+        texto_pagamento = item["pagamento"]
+
         await safe_edit_or_reply(
             update,
             texto_pagamento,
-            InlineKeyboardMarkup([[btn("✅ Pedido Confirmado", "finalizar_pedido")], [btn("🏠 Cancelar / Menu", "voltar:inicio")]]),
+            InlineKeyboardMarkup([
+                [btn("✅ Pedido Confirmado", "finalizar_pedido")]
+            ])
         )
         return
 
@@ -255,9 +255,11 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pedido["link"] = update.message.text.strip()
 
         await update.message.reply_text(
-            "Já recebi o link/@. Agora toque em *Confirmar pedido* para finalizar.",
+            "Já recebi o link/@. Agora toque em *Confirmar pedido* para continuar.",
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=InlineKeyboardMarkup([[btn("✅ Confirmar pedido", "finalizar_pedido")], [btn("🏠 Cancelar / Menu", "voltar:inicio")]]),
+            reply_markup=InlineKeyboardMarkup([
+                [btn("✅ Confirmar pedido", "confirmar_pedido")]
+            ]),
             disable_web_page_preview=True,
         )
         return
