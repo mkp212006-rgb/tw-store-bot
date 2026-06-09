@@ -26,24 +26,24 @@
             {
               "quantidade": 100,
               "quantidade_texto": "100",
-              "valor": "0,40",
-              "titulo": "100 Seguidores\nvalor: R$ 0,40",
+              "valor": "0,50",
+              "titulo": "100 Seguidores\nvalor: R$ 0,50",
               "mensagem": "Você Selecionou o pacote de *100 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
               "mensagem_confirmar": "Estou analisando o link enviado. Enquanto analiso, Vou estar passando as informações para o pagamento e finalização do seu pedido. \n\nApos realizar o pagamento me envie o comprovante para a confirmação do pagamento. \n\n*Dados:*  Chave Pix:\n( 💠 ) ttwovendas@gmail.com\n\n*Valor:* 0,30\n\n*Observação:* Após o envio do comprovante Digite 1 para finalizar seu pedido. \nㅤ"
             },
             {
               "quantidade": 200,
               "quantidade_texto": "200",
-              "valor": "0,40",
-              "titulo": "200 Seguidores\nvalor: R$ 0,40",
+              "valor": "0,80",
+              "titulo": "200 Seguidores\nvalor: R$ 0,80",
               "mensagem": "Você Selecionou o pacote de *200 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
               "mensagem_confirmar": "Estou analisando o link enviado. Enquanto analiso, Vou estar passando as informações para o pagamento e finalização do seu pedido. \n\nApos realizar o pagamento me envie o comprovante para a confirmação do pagamento. \n\n*Dados:*  Chave Pix:\n( 💠 ) ttwovendas@gmail.com\n\n*Valor:* 0,40\nㅤ"
             },
             {
               "quantidade": 300,
               "quantidade_texto": "300",
-              "valor": "0,58",
-              "titulo": "300 Seguidores\nvalor: R$ 0,58",
+              "valor": "1,10",
+              "titulo": "300 Seguidores\nvalor: R$ 1,10",
               "mensagem": "Você Selecionou o pacote de *300 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
               "mensagem_confirmar": "Estou analisando o link enviado. Enquanto analiso, Vou estar passando as informações para o pagamento e finalização do seu pedido. \n\nApos realizar o pagamento me envie o comprovante para a confirmação do pagamento. \n\n*Dados:*  Chave Pix:\n\n( 🔑 ) ttwovendas@gmail.com\n\n*Valor:* 1,00\n\n*Observação:* Após o envio do comprovante Digite 1 para finalizar seu pedido. ",
               "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
@@ -51,8 +51,8 @@
             {
               "quantidade": 400,
               "quantidade_texto": "400",
-              "valor": "0,74",
-              "titulo": "400 Seguidores\nvalor: R$ 0,74",
+              "valor": "1,40",
+              "titulo": "400 Seguidores\nvalor: R$ 1,40",
               "mensagem": "Você Selecionou o pacote de *400 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
               "mensagem_confirmar": "Estou analisando o link enviado. Enquanto analiso, Vou estar passando as informações para o pagamento e finalização do seu pedido. \n\nApos realizar o pagamento me envie o comprovante para a confirmação do pagamento. \n\n*Dados:*  Chave Pix:\n\n( 🔑 ) ttwovendas@gmail.com\n\n*Valor:* 1,00\n\n*Observação:* Após o envio do comprovante Digite 1 para finalizar seu pedido. ",
               "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
@@ -60,8 +60,8 @@
             {
               "quantidade": 500,
               "quantidade_texto": "500",
-              "valor": "0,90",
-              "titulo": "500 Seguidores\nvalor: R$ 0,90",
+              "valor": "1,70",
+              "titulo": "500 Seguidores\nvalor: R$ 1,70",
               "mensagem": "Você Selecionou o pacote de *500 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
               "mensagem_confirmar": "Estou analisando o link enviado. Enquanto analiso, Vou estar passando as informações para o pagamento e finalização do seu pedido. \n\nApos realizar o pagamento me envie o comprovante para a confirmação do pagamento. \n\n*Dados:*  Chave Pix:\n( 💠 ) ttwovendas@gmail.com\n\n*Valor:* 0,90\n\n*Observação:* Após o envio do comprovante Digite 1 para finalizar seu pedido. \nㅤ"
             },
