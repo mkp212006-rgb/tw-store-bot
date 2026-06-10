@@ -16,7 +16,7 @@
   },
   "catalogos": {
     "instagram": {
-      "titulo": "📱 Instagram",
+      "titulo": "📦 Instagram",
       "mensagem": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Instagram.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
       "servicos": {
         "seguidores": {
@@ -407,7 +407,7 @@
       }
     },
     "tiktok": {
-      "titulo": "🎵 TikTok",
+      "titulo": "📦 TikTok",
       "mensagem": "👥 *Seguidores para Instagram*\n\nPerfeito para aumentar a credibilidade do perfil e fortalecer sua presença no Instagram.\n\n✅ Serviço para perfis\n✅ Entrega gradual\n✅ Inicio de 0 a 6h\nㅤ",
       "servicos": {
         "seguidores": {
@@ -798,7 +798,7 @@
       }
     },
     "iptv": {
-      "titulo": "📺 IPTV Livestream 4K",
+      "titulo": "📦 IPTV Livestream 4K",
       "mensagem": "📺 *IPTV Livestream 4K*\n\nAssinatura com acesso pelo aplicativo.\n\n✅ Compatível com Android\n✅ Compatível com iPhone\n✅ Compatível com Smart TV\n\nPara consultar planos e disponibilidade, fale com o atendimento.",
       "servicos": {}
     }
