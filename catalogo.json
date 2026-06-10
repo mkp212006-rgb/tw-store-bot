@@ -4,6 +4,7 @@
     "inicio": "🚀 *Bem-vindo(a) à TW STORE!*\n\nSou o assistente virtual da loja. Aqui você encontra serviços digitais com atendimento organizado, entrega rápida e suporte dedicado.\n\nEscolha uma opção abaixo para continuar. 👇",
     "catalogo": "🛍️ *Catálogo TW STORE*\n\nSelecione a categoria desejada para ver os detalhes.\nㅤ",
     "instagram": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Instagram.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
+    "tiktok": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Tiktok.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
     "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nEnvie o serviço desejado e o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de pagar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
     "atendimento": "📞 *Atendimento TW STORE*\n\nSua solicitação foi recebida.\n\nEnvie agora:\n• Serviço desejado\n• Quantidade\n• Link ou @ do perfil\n\n⏳ Um membro da equipe continuará o atendimento assim que possível.",
     "como_fazer_pedido": "🧾 *Como fazer seu pedido*\n\n1️⃣ Escolha o serviço\n2️⃣ Envie o link ou @ solicitado\n3️⃣ Aguarde a conferência\n4️⃣ Receba as instruções de pagamento\n5️⃣ Envie o comprovante\n\nApós isso, seu pedido será encaminhado.",
@@ -408,7 +409,7 @@
     },
     "Tiktok": {
       "titulo": "⛩️ Tiktok",
-      "mensagem": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Instagram.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
+      "mensagem": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Tiktok.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
       "servicos": {
         "seguidores": {
           "nome": "Seguidores",
