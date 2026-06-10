@@ -46,10 +46,10 @@ def btn(texto: str, data: str) -> InlineKeyboardButton:
 
 def menu_principal() -> InlineKeyboardMarkup:
     keyboard = [
-        [btn("1️⃣ Catálogo de Serviços", "menu:catalogo")],
-        [btn("2️⃣ Dúvidas Frequentes", "extra:duvidas")],
-        [btn("3️⃣ Falar com Atendimento", "extra:atendimento")],
-        [btn("4️⃣ Como Fazer Pedido", "extra:como_fazer_pedido")],
+        [btn("🎯 Catálogo de Serviços", "menu:catalogo")],
+        [btn("❓ Dúvidas Frequentes", "extra:duvidas")],
+        [btn("💬 Falar com Atendimento", "extra:atendimento")],
+        [btn("📦 Como Fazer Pedido", "extra:como_fazer_pedido")],
             ]
     return InlineKeyboardMarkup(keyboard)
 
