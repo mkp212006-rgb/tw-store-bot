@@ -56,9 +56,9 @@ def menu_principal() -> InlineKeyboardMarkup:
 
 def menu_catalogos() -> InlineKeyboardMarkup:
     keyboard = [
-        [btn("📱 Instagram", "catalogo:instagram")],
-        [btn("🎵 TikTok", "catalogo:tiktok")],
-        [btn("📺 IPTV Livestream 4K", "catalogo:iptv")],
+        [btn("📦 Instagram", "catalogo:instagram")],
+        [btn("📦 TikTok", "catalogo:tiktok")],
+        [btn("📦 IPTV Livestream 4K", "catalogo:iptv")],
         [btn("⬅️ Voltar", "voltar:inicio")],
     ]
     return InlineKeyboardMarkup(keyboard)
