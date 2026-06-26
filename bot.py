@@ -396,8 +396,15 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data == "menu:catalogo":
-        await safe_edit_or_reply(update, CATALOGO["mensagens"]["catalogo"], menu_catalogos())
-        return
+    await query.answer()
+
+    with open("catalogo.png", "rb") as foto:
+        await context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=foto,
+            reply_markup=menu_catalogos()
+        )
+    return
 
     if data.startswith("extra:"):
         extra = data.split(":", 1)[1]
