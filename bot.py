@@ -396,7 +396,7 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data == "menu:catalogo":
-    await query.answer()
+        await query.answer()
 
     with open("catalogo.png", "rb") as foto:
         await context.bot.send_photo(
