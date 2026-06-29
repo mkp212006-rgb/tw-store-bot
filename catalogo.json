@@ -102,8 +102,8 @@
             {
               "quantidade": 1000,
               "quantidade_texto": "1.000",
-              "valor": "3,80",
-              "titulo": "1.000 Seguidores\nvalor: R$ 3,80",
+              "valor": "3,90",
+              "titulo": "1.000 Seguidores\nvalor: R$ 3,90",
               "mensagem": "Você Selecionou o pacote de *1.000 Seguidores.*\n\ninformações. \n\n*Início:* 0 a 2 horas após a confirmação de pagamento.\n\n*Proteção:* Entrega gradual/drip-feed para não acionar o algoritmo.\n\n*Necessário:* Para prosseguir com seu pedido, preciso que me envie abaixo o link do perfil que o cliente informou. O Perfil precisa estar público para ser encontrado, se estiver privado peço que informe seu cliente para deixar público até o conclusão do pedido, após isso podera priva-lo novamente.\n\n*Observação:* Apos o envio do link Digite 1 para prosseguir. \nㅤ",
               "mensagem_confirmar": "Estou analisando o link enviado. Enquanto analiso, Vou estar passando as informações para o pagamento e finalização do seu pedido. \n\nApos realizar o pagamento me envie o comprovante para a confirmação do pagamento. \n\n*Dados:*  Chave Pix:\n( 💠 ) sua-chave-pix\n\n*Valor:* 1,80\n\n*Observação:* Após o envio do comprovante Digite 1 para finalizar seu pedido. \nㅤ"
             },
