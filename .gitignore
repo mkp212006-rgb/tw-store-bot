@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+pedidos_pendentes.json
+pagamentos_processados.json
+comprovantes_usados.json
+totais_semanais.json
