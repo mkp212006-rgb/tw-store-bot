@@ -1304,15 +1304,15 @@ def quantidade_manual_para_int(texto: str) -> int | None:
 def margem_percentual_por_quantidade(quantidade: int) -> int:
     quantidade = int(quantidade)
     if 100 <= quantidade <= 400:
-        return 80
+        return 70
     if 401 <= quantidade <= 1000:
-        return 50
-    if 1001 <= quantidade <= 2000:
-        return 65
-    if 2001 <= quantidade <= 5000:
         return 45
-    if 5001 <= quantidade <= 10000:
+    if 1001 <= quantidade <= 2000:
+        return 50
+    if 2001 <= quantidade <= 5000:
         return 35
+    if 5001 <= quantidade <= 10000:
+        return 25
     raise ValueError("Quantidade fora da faixa permitida")
 
 
