@@ -1304,9 +1304,9 @@ def quantidade_manual_para_int(texto: str) -> int | None:
 def margem_percentual_por_quantidade(quantidade: int) -> int:
     quantidade = int(quantidade)
     if 100 <= quantidade <= 400:
-        return 100
-    if 401 <= quantidade <= 1000:
         return 80
+    if 401 <= quantidade <= 1000:
+        return 50
     if 1001 <= quantidade <= 2000:
         return 65
     if 2001 <= quantidade <= 5000:
