@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+pedidos_pendentes.json
+pagamentos_processados.json
+comprovantes_usados.json
+totais_semanais.json
+
+# Arquivos gerados em execução
+dados/bot_persistence.pkl
+dados/*.tmp
+dados/*.bak
+dados/*.corrompido-*.bak
