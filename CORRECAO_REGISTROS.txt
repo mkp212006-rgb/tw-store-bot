@@ -1,0 +1,17 @@
+Correção aplicada — registros persistentes
+
+1. O bot agora usa a pasta ./dados para salvar arquivos gerados em execução.
+2. O cadastro de clientes fica salvo em dados/usuarios_registrados.json.
+3. Ao reiniciar o bot, os usuários aprovados continuam liberados.
+4. O salvamento dos JSONs agora é feito de forma segura usando arquivo temporário + os.replace().
+5. Se existir usuarios_registrados.json antigo na raiz do projeto, ele é migrado automaticamente para ./dados.
+6. Foi adicionada persistência interna do python-telegram-bot em dados/bot_persistence.pkl.
+7. Para hospedagem com disco temporário, configure DATA_DIR apontando para um volume persistente.
+
+Arquivo principal alterado: bot.py
+
+ATUALIZAÇÃO EXTRA - APROVAÇÃO ENTRE ADMIN 1 E ADMIN 2
+- Agora o bot salva o chat_id e message_id da solicitação enviada para cada admin.
+- Quando qualquer admin aprova ou nega um registro, a mensagem antiga com botões é apagada/substituída nos dois admins.
+- Admin 1 e Admin 2 recebem uma nova mensagem informando se o registro foi aprovado ou negado e qual admin fez a decisão.
+- Foi adicionada proteção contra clique atrasado: se um admin já aprovou/negou, o outro não consegue inverter o status depois.
