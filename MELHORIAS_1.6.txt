@@ -1,0 +1,42 @@
+TW STORE BOT — UPDATE 1.6
+
+Alterações feitas nesta versão:
+
+1. Banco de dados SQLite
+- O bot agora usa SQLite em dados/bot.sqlite3 por padrão.
+- Cadastros, pedidos pendentes, histórico, comprovantes usados, pagamentos processados, totais semanais e fila de webhooks são persistidos no banco.
+- Os JSONs antigos são migrados automaticamente para o SQLite na primeira inicialização, se existirem.
+
+2. bot.py dividido em módulos
+- database.py: camada de banco SQLite.
+- validators.py: validação e normalização de e-mail, Instagram e TikTok.
+- bot.py continua como arquivo principal, mas agora delega persistência e validação para módulos separados.
+
+3. Cadastro melhorado com senha
+- O cadastro continua pedindo usuário e senha.
+- A senha não é salva em texto puro: é gravada como hash PBKDF2-HMAC-SHA256 com salt.
+- Após validar usuário e senha, o bot tenta apagar a mensagem enviada pelo cliente para reduzir exposição da senha.
+- O admin recebe nome, @username, Telegram ID e usuário escolhido para aprovar ou negar.
+
+4. Webhook melhorado
+- O webhook do Mercado Pago agora salva o evento em uma fila SQLite antes de responder.
+- Se o bot reiniciar ou falhar no meio do processamento, a rotina de retry tenta novamente.
+- Configurações novas: WEBHOOK_QUEUE_INTERVAL e WEBHOOK_QUEUE_MAX_ATTEMPTS.
+
+5. Painel admin melhorado
+- /painel agora tem resumo do bot, últimos pedidos, cadastros pendentes, pagamentos pendentes, busca de usuário, lista de usuários e banir/desbanir.
+- Busca por Telegram ID, @username, nome ou identificação interna.
+
+6. Validação de links melhorada
+- Instagram: aceita @usuario ou links instagram.com/...
+- TikTok: aceita @usuario ou links tiktok.com/vm.tiktok.com/vt.tiktok.com
+- IPTV/Internet: valida e-mail antes de gerar pagamento.
+
+Observação importante:
+- Por solicitação do usuário, o arquivo .env real foi mantido neste pacote.
+- Não publique este ZIP em GitHub, grupos, prints ou hospedagens públicas.
+
+
+Verificação adicional:
+- .env.example alinhado com as variáveis usadas pelo código, incluindo Pix manual/fallback e alias do segundo admin.
+- Resposta de cadastro ajustada para não depender da mensagem de senha apagada.
