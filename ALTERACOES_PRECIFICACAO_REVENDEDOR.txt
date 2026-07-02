@@ -1,0 +1,50 @@
+ALTERAÇÕES DE PRECIFICAÇÃO PARA REVENDEDOR
+
+Arquivo alterado: bot.py
+
+Foi removido o markup fixo de 10% e adicionada uma precificação por faixas:
+
+- Custo até R$ 1,00: multiplicador 3.00
+- Custo até R$ 3,00: multiplicador 1.78
+- Custo até R$ 10,00: multiplicador 1.41
+- Custo até R$ 30,00: multiplicador 1.30
+- Custo acima de R$ 30,00: multiplicador 1.40
+
+Também foram adicionados/ajustados:
+
+- Preço mínimo para cliente: R$ 0,80
+- Taxa operacional: R$ 0,50
+- A taxa operacional de R$ 0,50 só é somada quando o valor calculado antes da taxa for superior a R$ 4,00
+- Arredondamento comercial:
+  - abaixo de R$ 10,00: arredonda para cima de R$ 0,50 em R$ 0,50
+  - abaixo de R$ 50,00: arredonda para cima de R$ 1,00 em R$ 1,00
+  - acima de R$ 50,00: arredonda para cima de R$ 5,00 em R$ 5,00
+
+Este ZIP mantém todos os arquivos do pacote completo, incluindo .env e __pycache__.
+
+
+Atualização adicional:
+- A faixa de custo até R$ 30,00 foi ajustada de multiplicador 1.55 para 1.30, para que um pedido com custo de R$ 22,40 fique em torno de R$ 30,00 após taxa e arredondamento.
+
+Atualização adicional:
+- A faixa de custo até R$ 3,00 foi ajustada de multiplicador 2.20 para 1.78, para que um pedido com custo de R$ 2,24 fique em torno de R$ 4,00 após arredondamento.
+
+Atualização adicional:
+- A faixa de custo até R$ 10,00 foi ajustada para multiplicador 1.41, para que um pedido com custo de R$ 6,72 fique em aproximadamente R$ 10,00 após taxa e arredondamento.
+
+
+Atualização adicional:
+- Serviços de visualizações agora usam markup próprio separado dos demais serviços:
+  - Custo até R$ 1,00: multiplicador 5.00
+  - Custo até R$ 3,00: multiplicador 5.00
+  - Custo até R$ 10,00: multiplicador 5.00
+  - Custo até R$ 30,00: multiplicador 5.00
+  - Custo acima de R$ 30,00: multiplicador 5.00
+- Seguidores, curtidas e demais serviços continuam usando a tabela padrão anterior.
+
+Atualização adicional:
+- Preço mínimo separado por tipo de serviço:
+  - Curtidas: preço mínimo R$ 0,50
+  - Visualizações: preço mínimo R$ 0,50
+  - Seguidores e demais serviços: preço mínimo R$ 0,80
+- O arredondamento comercial continua ativo. Portanto, se o valor calculado ficar em R$ 0,50, permanece R$ 0,50; se ficar acima de R$ 0,50 e abaixo de R$ 1,00, pode arredondar para R$ 1,00.
