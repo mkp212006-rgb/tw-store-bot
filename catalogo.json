@@ -1,0 +1,850 @@
+{
+  "loja": "TW STORE",
+  "mensagens": {
+    "inicio": "🚀 Bem-vindo(a) à TW STORE\n\nSua central de serviços digitais com atendimento organizado, processo simples e suporte dedicado do início ao fim.\n\nAqui você pode escolher o serviço, informar os dados do pedido, realizar o pagamento e acompanhar tudo pelo próprio bot com praticidade.\n\nSelecione uma opção abaixo para continuar:",
+    "catalogo": "🛍️ *Catálogo TW STORE*\n\nSelecione a categoria desejada para ver os detalhes.\nㅤ",
+    "instagram": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Instagram.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
+    "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nEnvie o serviço desejado e o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de pagar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
+    "atendimento": "📞 *Atendimento TW STORE*\n\nSua solicitação foi recebida.\n\nEnvie agora:\n• Serviço desejado\n• Quantidade\n• Link ou @ do perfil\n\n⏳ Um membro da equipe continuará o atendimento assim que possível.",
+    "pagamento": "💳 *Finalização do Pedido*\n\nEstou conferindo as informações enviadas.\n\nEm seguida, você receberá a tela de pagamento com o valor exato, o resumo do pedido e o botão para copiar o Pix.",
+    "pedido_confirmado": "✅ *Pedido confirmado!*\n\nA TW STORE agradece pela preferência.\n\n⏰ O início pode variar conforme o serviço escolhido e a demanda do momento.\n\nGuarde esta conversa para acompanhar seu atendimento.",
+    "prazos_suporte": "⏰ *Prazos e Suporte*\n\nCada serviço possui um prazo diferente de início e conclusão.\n\nCaso tenha dúvidas, envie 1 para que possa ser transferido para alguém da equipe da TW Store. \nㅤ",
+    "solicitar_link": "🔗 *Agora preciso do link do cliente*\n\nEnvie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n⚠️ O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+    "confirmar_dados": "Confira os dados do pedido abaixo. Se estiver tudo certo, toque em Confirmar pedido.",
+    "erro_admin": "Pedido registrado, mas não consegui enviar o relatório ao administrador. Confira se ADMIN_CHAT_ID está configurado.",
+    "solicitar_link_publicacao": "🔗 *Agora preciso do link do cliente*\n\nEnvie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n⚠️ O perfil ou conteúdo precisa estar público até a conclusão do serviço."
+  },
+  "catalogos": {
+    "instagram": {
+      "titulo": "📦 Instagram",
+      "mensagem": "Ótima escolha! Aqui estão alguns serviços disponíveis para a area da plataforma *Instagram.*\n\nTodos os pedidos passam por conferência antes da finalização.\nㅤ",
+      "servicos": {
+        "seguidores": {
+          "nome": "Seguidores",
+          "mensagem": "👥 *Seguidores para Instagram*\n\nPerfeito para aumentar a credibilidade do perfil e fortalecer sua presença no Instagram.\n\n✅ Serviço para perfis\n✅ Entrega gradual\n✅ Inicio de 0 a 6h\nㅤ",
+          "itens": [
+            {
+              "quantidade": 100,
+              "quantidade_texto": "100",
+              "valor": "0,70",
+              "titulo": "100 Seguidores\nvalor: R$ 0,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 100\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,70"
+            },
+            {
+              "quantidade": 200,
+              "quantidade_texto": "200",
+              "valor": "1,10",
+              "titulo": "200 Seguidores\nvalor: R$ 1,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 200\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,10"
+            },
+            {
+              "quantidade": 300,
+              "quantidade_texto": "300",
+              "valor": "1,40",
+              "titulo": "300 Seguidores\nvalor: R$ 1,40",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 300\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,40",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 400,
+              "quantidade_texto": "400",
+              "valor": "1,80",
+              "titulo": "400 Seguidores\nvalor: R$ 1,80",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 400\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,80",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 500,
+              "quantidade_texto": "500",
+              "valor": "2,30",
+              "titulo": "500 Seguidores\nvalor: R$ 2,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 500\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,30"
+            },
+            {
+              "quantidade": 600,
+              "quantidade_texto": "600",
+              "valor": "2,60",
+              "titulo": "600 Seguidores\nvalor: R$ 2,60",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 600\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,60",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 700,
+              "quantidade_texto": "700",
+              "valor": "2,90",
+              "titulo": "700 Seguidores\nvalor: R$ 2,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 700\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,90"
+            },
+            {
+              "quantidade": 800,
+              "quantidade_texto": "800",
+              "valor": "3,30",
+              "titulo": "800 Seguidores\nvalor: R$ 3,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 800\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,30",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 900,
+              "quantidade_texto": "900",
+              "valor": "3,50",
+              "titulo": "900 Seguidores\nvalor: R$ 3,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 900\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,50"
+            },
+            {
+              "quantidade": 1000,
+              "quantidade_texto": "1.000",
+              "valor": "3,90",
+              "titulo": "1.000 Seguidores\nvalor: R$ 3,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 1.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,90"
+            },
+            {
+              "quantidade": 2000,
+              "quantidade_texto": "2.000",
+              "valor": "6,20",
+              "titulo": "2.000 Seguidores\nvalor: R$ 6,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 2.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 6,20",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 3000,
+              "quantidade_texto": "3.000",
+              "valor": "9,00",
+              "titulo": "3.000 Seguidores\nvalor: R$ 9,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 3.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 9,00"
+            },
+            {
+              "quantidade": 4000,
+              "quantidade_texto": "4.000",
+              "valor": "12,00",
+              "titulo": "4.000 Seguidores\nvalor: R$ 12,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 4.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 12,00",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 5000,
+              "quantidade_texto": "5.000",
+              "valor": "14,50",
+              "titulo": "5.000 Seguidores\nvalor: R$ 14,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 5.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 14,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 10000,
+              "quantidade_texto": "10.000",
+              "valor": "29,00",
+              "titulo": "10.000 Seguidores\nvalor: R$ 29,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: Instagram\nEstoque: 10.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 29,00"
+            }
+          ],
+          "api_service_id": null
+        },
+        "curtidas": {
+          "nome": "Curtidas",
+          "mensagem": "❤️ *Curtidas para Instagram*\n\nPerfeito para melhorar a aparência das publicações e aumentar o engajamento.\n\n✅ Serviço para posts\n✅ Entrega prática\n✅ Atendimento antes da compra\nㅤ",
+          "itens": [
+            {
+              "quantidade": 100,
+              "quantidade_texto": "100",
+              "valor": "0,20",
+              "titulo": "100 Curtidas\nvalor: R$ 0,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 100\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,20"
+            },
+            {
+              "quantidade": 200,
+              "quantidade_texto": "200",
+              "valor": "0,30",
+              "titulo": "200 Curtidas\nvalor: R$ 0,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 200\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,30"
+            },
+            {
+              "quantidade": 300,
+              "quantidade_texto": "300",
+              "valor": "0,40",
+              "titulo": "300 Curtidas\nvalor: R$ 0,40",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 300\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,40"
+            },
+            {
+              "quantidade": 400,
+              "quantidade_texto": "400",
+              "valor": "0,50",
+              "titulo": "400 Curtidas\nvalor: R$ 0,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 400\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,50"
+            },
+            {
+              "quantidade": 500,
+              "quantidade_texto": "500",
+              "valor": "0,60",
+              "titulo": "500 Curtidas\nvalor: R$ 0,60",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 500\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,60"
+            },
+            {
+              "quantidade": 600,
+              "quantidade_texto": "600",
+              "valor": "0,70",
+              "titulo": "600 Curtidas\nvalor: R$ 0,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 600\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,70"
+            },
+            {
+              "quantidade": 700,
+              "quantidade_texto": "700",
+              "valor": "0,80",
+              "titulo": "700 Curtidas\nvalor: R$ 0,80",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 700\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,80"
+            },
+            {
+              "quantidade": 800,
+              "quantidade_texto": "800",
+              "valor": "0,90",
+              "titulo": "800 Curtidas\nvalor: R$ 0,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 800\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,90"
+            },
+            {
+              "quantidade": 900,
+              "quantidade_texto": "900",
+              "valor": "1,00",
+              "titulo": "900 Curtidas\nvalor: R$ 1,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 900\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,00"
+            },
+            {
+              "quantidade": 1000,
+              "quantidade_texto": "1.000",
+              "valor": "1,10",
+              "titulo": "1.000 Curtidas\nvalor: R$ 1,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 1.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,10"
+            },
+            {
+              "quantidade": 2000,
+              "quantidade_texto": "2.000",
+              "valor": "2,20",
+              "titulo": "2.000 Curtidas\nvalor: R$ 2,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 2.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,20"
+            },
+            {
+              "quantidade": 3000,
+              "quantidade_texto": "3.000",
+              "valor": "3,20",
+              "titulo": "3.000 Curtidas\nvalor: R$ 3,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 3.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,20"
+            },
+            {
+              "quantidade": 4000,
+              "quantidade_texto": "4.000",
+              "valor": "4,20",
+              "titulo": "4.000 Curtidas\nvalor: R$ 4,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 4.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 4,20"
+            },
+            {
+              "quantidade": 5000,
+              "quantidade_texto": "5.000",
+              "valor": "5,20",
+              "titulo": "5.000 Curtidas\nvalor: R$ 5,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 5.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 5,20"
+            },
+            {
+              "quantidade": 10000,
+              "quantidade_texto": "10.000",
+              "valor": "8,20",
+              "titulo": "10.000 Curtidas\nvalor: R$ 8,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: Instagram\nEstoque: 10.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 8,20"
+            }
+          ],
+          "api_service_id": null
+        },
+        "visualizacoes": {
+          "nome": "Visualizações",
+          "mensagem": "👀 *Visualizações para Instagram*\n\nÓtimo para impulsionar vídeos, reels e conteúdos recentes.\n\n✅ Mais alcance\n✅ Processo simples\n✅ Suporte na finalização\nㅤ",
+          "itens": [
+            {
+              "quantidade": 100,
+              "quantidade_texto": "100",
+              "valor": "0,50",
+              "titulo": "100 Visualizações\nvalor: R$ 0,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 100\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,50"
+            },
+            {
+              "quantidade": 200,
+              "quantidade_texto": "200",
+              "valor": "0,70",
+              "titulo": "200 Visualizações\nvalor: R$ 0,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 200\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,70"
+            },
+            {
+              "quantidade": 300,
+              "quantidade_texto": "300",
+              "valor": "0,90",
+              "titulo": "300 Visualizações\nvalor: R$ 0,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 300\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,90"
+            },
+            {
+              "quantidade": 400,
+              "quantidade_texto": "400",
+              "valor": "1,10",
+              "titulo": "400 Visualizações\nvalor: R$ 1,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 400\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,10"
+            },
+            {
+              "quantidade": 500,
+              "quantidade_texto": "500",
+              "valor": "1,30",
+              "titulo": "500 Visualizações\nvalor: R$ 1,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 500\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,30"
+            },
+            {
+              "quantidade": 600,
+              "quantidade_texto": "600",
+              "valor": "1,50",
+              "titulo": "600 Visualizações\nvalor: R$ 1,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 600\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,50"
+            },
+            {
+              "quantidade": 700,
+              "quantidade_texto": "700",
+              "valor": "1,70",
+              "titulo": "700 Visualizações\nvalor: R$ 1,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 700\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,70"
+            },
+            {
+              "quantidade": 800,
+              "quantidade_texto": "800",
+              "valor": "1,90",
+              "titulo": "800 Visualizações\nvalor: R$ 1,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 800\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,90"
+            },
+            {
+              "quantidade": 900,
+              "quantidade_texto": "900",
+              "valor": "2,10",
+              "titulo": "900 Visualizações\nvalor: R$ 2,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 900\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,10"
+            },
+            {
+              "quantidade": 1000,
+              "quantidade_texto": "1.000",
+              "valor": "2,30",
+              "titulo": "1.000 Visualizações\nvalor: R$ 2,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 1.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,30"
+            },
+            {
+              "quantidade": 2000,
+              "quantidade_texto": "2.000",
+              "valor": "2,40",
+              "titulo": "2.000 Visualizações\nvalor: R$ 2,40",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 2.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,40"
+            },
+            {
+              "quantidade": 3000,
+              "quantidade_texto": "3.000",
+              "valor": "2,50",
+              "titulo": "3.000 Visualizações\nvalor: R$ 2,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 3.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,50"
+            },
+            {
+              "quantidade": 4000,
+              "quantidade_texto": "4.000",
+              "valor": "2,60",
+              "titulo": "4.000 Visualizações\nvalor: R$ 2,60",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 4.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,60"
+            },
+            {
+              "quantidade": 5000,
+              "quantidade_texto": "5.000",
+              "valor": "2,70",
+              "titulo": "5.000 Visualizações\nvalor: R$ 2,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 5.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,70"
+            },
+            {
+              "quantidade": 10000,
+              "quantidade_texto": "10.000",
+              "valor": "3,20",
+              "titulo": "10.000 Visualizações\nvalor: R$ 3,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: Instagram\nEstoque: 10.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,20"
+            }
+          ],
+          "api_service_id": null
+        }
+      }
+    },
+    "tiktok": {
+      "titulo": "📦 TikTok",
+      "mensagem": "👥 *Seguidores para Tiktok*\n\nPerfeito para aumentar a credibilidade do perfil e fortalecer sua presença no Tiktok.\n\n✅ Serviço para perfis\n✅ Entrega gradual\n✅ Inicio de 0 a 6h\nㅤ",
+      "servicos": {
+        "seguidores": {
+          "nome": "Seguidores",
+          "mensagem": "Você Selecionou o Catálogo de Seguidores, Aqui está alguns pacotes disponíveis.\nㅤ",
+          "itens": [
+            {
+              "quantidade": 100,
+              "quantidade_texto": "100",
+              "valor": "2,00",
+              "titulo": "100 Seguidores\nvalor: R$ 2,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 100\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,00"
+            },
+            {
+              "quantidade": 200,
+              "quantidade_texto": "200",
+              "valor": "3,50",
+              "titulo": "200 Seguidores\nvalor: R$ 3,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 200\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,50"
+            },
+            {
+              "quantidade": 300,
+              "quantidade_texto": "300",
+              "valor": "5,50",
+              "titulo": "300 Seguidores\nvalor: R$ 5,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 300\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 5,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 400,
+              "quantidade_texto": "400",
+              "valor": "6,50",
+              "titulo": "400 Seguidores\nvalor: R$ 6,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 400\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 6,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 500,
+              "quantidade_texto": "500",
+              "valor": "8,00",
+              "titulo": "500 Seguidores\nvalor: R$ 8,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 500\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 8,00"
+            },
+            {
+              "quantidade": 600,
+              "quantidade_texto": "600",
+              "valor": "9,50",
+              "titulo": "600 Seguidores\nvalor: R$ 9,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 600\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 9,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 700,
+              "quantidade_texto": "700",
+              "valor": "11,00",
+              "titulo": "700 Seguidores\nvalor: R$ 11,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 700\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 11,00"
+            },
+            {
+              "quantidade": 800,
+              "quantidade_texto": "800",
+              "valor": "12,50",
+              "titulo": "800 Seguidores\nvalor: R$ 12,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 800\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 12,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 900,
+              "quantidade_texto": "900",
+              "valor": "14,00",
+              "titulo": "900 Seguidores\nvalor: R$ 14,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 900\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 14,00"
+            },
+            {
+              "quantidade": 1000,
+              "quantidade_texto": "1.000",
+              "valor": "15,50",
+              "titulo": "1.000 Seguidores\nvalor: R$ 15,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 1.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 15,50"
+            },
+            {
+              "quantidade": 2000,
+              "quantidade_texto": "2.000",
+              "valor": "31,50",
+              "titulo": "2.000 Seguidores\nvalor: R$ 31,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 2.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 31,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 3000,
+              "quantidade_texto": "3.000",
+              "valor": "47,50",
+              "titulo": "3.000 Seguidores\nvalor: R$ 47,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 3.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 47,50"
+            },
+            {
+              "quantidade": 4000,
+              "quantidade_texto": "4.000",
+              "valor": "63,50",
+              "titulo": "4.000 Seguidores\nvalor: R$ 63,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 4.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 63,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 5000,
+              "quantidade_texto": "5.000",
+              "valor": "79,50",
+              "titulo": "5.000 Seguidores\nvalor: R$ 79,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 5.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 79,50",
+              "observacao": "valor calculado proporcionalmente por não existir esta quantidade no arquivo original"
+            },
+            {
+              "quantidade": 10000,
+              "quantidade_texto": "10.000",
+              "valor": "152,20",
+              "titulo": "10.000 Seguidores\nvalor: R$ 152,20",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Seguidores\nPlataforma: TikTok\nEstoque: 10.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto do perfil para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 152,20"
+            }
+          ],
+          "api_service_id": null
+        },
+        "curtidas": {
+          "nome": "Curtidas",
+          "mensagem": "❤️ *Curtidas para Instagram*\n\nPerfeito para melhorar a aparência das publicações e aumentar o engajamento.\n\n✅ Serviço para posts\n✅ Entrega prática\n✅ Atendimento antes da compra\nㅤ",
+          "itens": [
+            {
+              "quantidade": 100,
+              "quantidade_texto": "100",
+              "valor": "0,50",
+              "titulo": "100 Curtidas\nvalor: R$ 0,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 100\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,50"
+            },
+            {
+              "quantidade": 200,
+              "quantidade_texto": "200",
+              "valor": "0,90",
+              "titulo": "200 Curtidas\nvalor: R$ 0,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 200\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,90"
+            },
+            {
+              "quantidade": 300,
+              "quantidade_texto": "300",
+              "valor": "1,30",
+              "titulo": "300 Curtidas\nvalor: R$ 1,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 300\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,30"
+            },
+            {
+              "quantidade": 400,
+              "quantidade_texto": "400",
+              "valor": "1,70",
+              "titulo": "400 Curtidas\nvalor: R$ 1,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 400\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,70"
+            },
+            {
+              "quantidade": 500,
+              "quantidade_texto": "500",
+              "valor": "2,10",
+              "titulo": "500 Curtidas\nvalor: R$ 2,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 500\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,10"
+            },
+            {
+              "quantidade": 600,
+              "quantidade_texto": "600",
+              "valor": "2,50",
+              "titulo": "600 Curtidas\nvalor: R$ 02,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 600\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,50"
+            },
+            {
+              "quantidade": 700,
+              "quantidade_texto": "700",
+              "valor": "2,90",
+              "titulo": "700 Curtidas\nvalor: R$ 2,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 700\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,90"
+            },
+            {
+              "quantidade": 800,
+              "quantidade_texto": "800",
+              "valor": "3,30",
+              "titulo": "800 Curtidas\nvalor: R$ 3,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 800\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,30"
+            },
+            {
+              "quantidade": 900,
+              "quantidade_texto": "900",
+              "valor": "3,70",
+              "titulo": "900 Curtidas\nvalor: R$ 3,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 900\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,70"
+            },
+            {
+              "quantidade": 1000,
+              "quantidade_texto": "1.000",
+              "valor": "4,10",
+              "titulo": "1.000 Curtidas\nvalor: R$ 4,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 1.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 4,10"
+            },
+            {
+              "quantidade": 2000,
+              "quantidade_texto": "2.000",
+              "valor": "7,50",
+              "titulo": "2.000 Curtidas\nvalor: R$ 7,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 2.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 7,50"
+            },
+            {
+              "quantidade": 3000,
+              "quantidade_texto": "3.000",
+              "valor": "10,50",
+              "titulo": "3.000 Curtidas\nvalor: R$ 10,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 3.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 10,50"
+            },
+            {
+              "quantidade": 4000,
+              "quantidade_texto": "4.000",
+              "valor": "13,50",
+              "titulo": "4.000 Curtidas\nvalor: R$ 13,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 4.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 13,50"
+            },
+            {
+              "quantidade": 5000,
+              "quantidade_texto": "5.000",
+              "valor": "16,50",
+              "titulo": "5.000 Curtidas\nvalor: R$ 16,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 5.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 16,50"
+            },
+            {
+              "quantidade": 10000,
+              "quantidade_texto": "10.000",
+              "valor": "20,00",
+              "titulo": "10.000 Curtidas\nvalor: R$ 20,00",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Curtidas\nPlataforma: TikTok\nEstoque: 10.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 20,00"
+            }
+          ],
+          "api_service_id": null
+        },
+        "visualizacoes": {
+          "nome": "Visualizações",
+          "mensagem": "👀 *Visualizações para Instagram*\n\nÓtimo para impulsionar vídeos, reels e conteúdos recentes.\n\n✅ Mais alcance\n✅ Processo simples\n✅ Suporte na finalização\nㅤ",
+          "itens": [
+            {
+              "quantidade": 100,
+              "quantidade_texto": "100",
+              "valor": "0,50",
+              "titulo": "100 Visualizações\nvalor: R$ 0,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 100\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,50"
+            },
+            {
+              "quantidade": 200,
+              "quantidade_texto": "200",
+              "valor": "0,70",
+              "titulo": "200 Visualizações\nvalor: R$ 0,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 200\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,70"
+            },
+            {
+              "quantidade": 300,
+              "quantidade_texto": "300",
+              "valor": "0,90",
+              "titulo": "300 Visualizações\nvalor: R$ 0,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 300\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 0,90"
+            },
+            {
+              "quantidade": 400,
+              "quantidade_texto": "400",
+              "valor": "1,10",
+              "titulo": "400 Visualizações\nvalor: R$ 1,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 400\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,10"
+            },
+            {
+              "quantidade": 500,
+              "quantidade_texto": "500",
+              "valor": "1,30",
+              "titulo": "500 Visualizações\nvalor: R$ 1,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 500\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,30"
+            },
+            {
+              "quantidade": 600,
+              "quantidade_texto": "600",
+              "valor": "1,50",
+              "titulo": "600 Visualizações\nvalor: R$ 1,50",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 600\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,50"
+            },
+            {
+              "quantidade": 700,
+              "quantidade_texto": "700",
+              "valor": "1,70",
+              "titulo": "700 Visualizações\nvalor: R$ 1,70",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 700\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,70"
+            },
+            {
+              "quantidade": 800,
+              "quantidade_texto": "800",
+              "valor": "1,90",
+              "titulo": "800 Visualizações\nvalor: R$ 1,90",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 800\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 1,90"
+            },
+            {
+              "quantidade": 900,
+              "quantidade_texto": "900",
+              "valor": "2,10",
+              "titulo": "900 Visualizações\nvalor: R$ 2,10",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 900\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,10"
+            },
+            {
+              "quantidade": 1000,
+              "quantidade_texto": "1.000",
+              "valor": "2,30",
+              "titulo": "1.000 Visualizações\nvalor: R$ 2,30",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 1.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,30"
+            },
+            {
+              "quantidade": 2000,
+              "quantidade_texto": "2.000",
+              "valor": "2,67",
+              "titulo": "2.000 Visualizações\nvalor: R$ 2,67",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 2.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 2,67"
+            },
+            {
+              "quantidade": 3000,
+              "quantidade_texto": "3.000",
+              "valor": "3,81",
+              "titulo": "3.000 Visualizações\nvalor: R$ 3,81",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 3.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 3,81"
+            },
+            {
+              "quantidade": 4000,
+              "quantidade_texto": "4.000",
+              "valor": "4,94",
+              "titulo": "4.000 Visualizações\nvalor: R$ 4,94",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 4.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 4,94"
+            },
+            {
+              "quantidade": 5000,
+              "quantidade_texto": "5.000",
+              "valor": "6,28",
+              "titulo": "5.000 Visualizações\nvalor: R$ 6,28",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 5.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 6,28"
+            },
+            {
+              "quantidade": 10000,
+              "quantidade_texto": "10.000",
+              "valor": "11,36",
+              "titulo": "10.000 Visualizações\nvalor: R$ 11,36",
+              "mensagem": "ℹ️ Resumo do Pedido.\n\nPacote selecionado: Visualizações\nPlataforma: TikTok\nEstoque: 10.000\n\n📕  Regras Solicitação.\n\n1️⃣  Envie aqui embaixo o link ou @ correto da publicação para continuar o pedido.\n\n2️⃣  O perfil precisa estar público, para solicitar o serviço.\n\n3️⃣  O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
+              "mensagem_confirmar": "✅ *Link recebido com sucesso!*\n\nEstou conferindo as informações do pedido e preparando a finalização.\n\n💳 *Pagamento*\nVocê receberá os dados do Pix com o valor exato do pedido.\nDepois de pagar, siga a orientação do bot para confirmação.\n\n💰 *Valor:* R$ 11,36"
+            }
+          ],
+          "api_service_id": null
+        }
+      }
+    },
+    "iptv": {
+      "titulo": "📦 IPTV Livestream 4K",
+      "mensagem": "📺 *IPTV Livestream 4K*\\n\\nEscolha o plano disponível abaixo para continuar.",
+      "servicos": {
+        "1mes": {
+          "nome": "1 mês",
+          "mensagem": "Você selecionou *IPTV Livestream 4K — 1 mês*.\\n\\nValor: *R$ 15,00*\\n\\nEnvie o e-mail que será usado para ativação do acesso.",
+          "itens": [
+            {
+              "quantidade": 1,
+              "quantidade_texto": "1 mês",
+              "valor": "15,00",
+              "titulo": "IPTV Livestream 4K — 1 mês\\nvalor: R$ 15,00",
+              "mensagem": "✅ *IPTV Livestream 4K — 1 mês*\n\n💰 *Valor:* R$ 15,00\n\n📧 *Próximo passo*\nEnvie aqui embaixo o e-mail do cliente que será usado para ativação do acesso."
+            }
+          ]
+        }
+      }
+    },
+    "internet_ilimitada": {
+      "titulo": "📶 Internet Ilimitada",
+      "mensagem": "📶 *Internet Ilimitada*\n\nInternet para uso mensal.\n\n✅ Valor: R$ 15,00 por mês\n✅ Processo simples e rápido\n\nEscolha o plano abaixo para continuar.",
+      "servicos": {
+        "1mes": {
+          "nome": "1 mês",
+          "mensagem": "📶 *Internet Ilimitada - 1 mês*\n\n💰 Valor: R$ 15,00\n\nAgora envie o e-mail para ativação do serviço.",
+          "itens": [
+            {
+              "quantidade": 1,
+              "quantidade_texto": "1 mês",
+              "valor": "15,00",
+              "titulo": "Internet Ilimitada 1 mês",
+              "mensagem": "✅ *Internet Ilimitada — 1 mês*\n\n💰 *Valor:* R$ 15,00\n\n📧 *Próximo passo*\nEnvie aqui embaixo o e-mail do cliente para ativação do serviço."
+            }
+          ]
+        }
+      }
+    }
+  },
+  "menus_extras": {
+    "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nEnvie o serviço desejado e o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de pagar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
+    "atendimento": "📞 *Atendimento TW STORE*\n\nSua solicitação foi recebida.\n\nEnvie agora:\n• Serviço desejado\n• Quantidade\n• Link ou @ do perfil\n\n⏳ Um membro da equipe continuará o atendimento assim que possível.",
+    "prazos_suporte": "⏰ *Prazos e Suporte*\n\nCada serviço possui um prazo diferente de início e conclusão.\n\nCaso tenha dúvidas, envie 1 para que possa ser transferido para alguém da equipe da TW Store. \nㅤ"
+  }
+}
