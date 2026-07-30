@@ -98,7 +98,20 @@ DB = BotDatabase(DATABASE_PATH)
 
 CATALOGO_PATH = BASE_DIR / "catalogo.json"
 WELCOME_IMAGE_PATH = BASE_DIR / "tw_store_boas_vindas.png"
+CATALOGO_IMAGE_PATH = BASE_DIR / "tw_store_catalogo.png"
+ENGAJAMENTOS_IMAGE_PATH = BASE_DIR / "tw_store_engajamentos.png"
+INSTAGRAM_IMAGE_PATH = BASE_DIR / "tw_store_instagram.png"
+INSTAGRAM_ESTRANGEIROS_IMAGE_PATH = BASE_DIR / "tw_store_instagram_estrangeiros.png"
+INSTAGRAM_BRASILEIROS_IMAGE_PATH = BASE_DIR / "tw_store_instagram_brasileiros.png"
+TIKTOK_IMAGE_PATH = BASE_DIR / "tw_store_tiktok.png"
+TIKTOK_ESTRANGEIROS_IMAGE_PATH = BASE_DIR / "tw_store_tiktok_estrangeiros.png"
+KWAI_IMAGE_PATH = BASE_DIR / "tw_store_kwai.png"
+KWAI_BRASILEIROS_IMAGE_PATH = BASE_DIR / "tw_store_kwai_brasileiros.png"
+IPTV_IMAGE_PATH = BASE_DIR / "xciptv_player.jpg"
 SUPORTE_IMAGE_PATH = BASE_DIR / "tw_store_suporte.png"
+TICKET_STATUS_IMAGE_PATH = BASE_DIR / "ticket_suporte.jpg"
+REGISTRO_IMAGE_PATH = BASE_DIR / "registro_obrigatorio.jpg"
+CRIAR_REGISTRO_IMAGE_PATH = BASE_DIR / "criar_usuario.png"
 PAGAMENTO_INSTAGRAM_LAYOUT_PATH = BASE_DIR / "pagamento_instagram_layout.png"
 PAGAMENTO_TIKTOK_LAYOUT_PATH = BASE_DIR / "pagamento_tiktok_layout.png"
 ASSINATURA_IMAGE_PATHS = {
@@ -243,6 +256,25 @@ PEDIDOS_HISTORICO_PATH = DATA_DIR / "pedidos_historico.json"
 USUARIOS_REGISTRADOS_PATH = DATA_DIR / "usuarios_registrados.json"
 BOT_PERSISTENCE_PATH = DATA_DIR / "bot_persistence.pkl"
 
+CONFIG_MANUTENCAO_CHAVE = "manutencao"
+MENSAGEM_MANUTENCAO_INICIO = (
+    "⚙️ Manutenção em andamento\n\n"
+    "O bot está entrando em manutenção agora para ajustes e melhorias.\n\n"
+    "Durante esse período, o acesso ficará temporariamente bloqueado. "
+    "Assim que o serviço for concluído, você receberá uma nova notificação.\n\n"
+    "Agradecemos pela compreensão."
+)
+MENSAGEM_MANUTENCAO_BLOQUEIO = (
+    "⚙️ *Bot em manutenção*\n\n"
+    "O acesso está temporariamente bloqueado enquanto realizamos ajustes e melhorias.\n\n"
+    "Assim que a manutenção for concluída, você receberá uma notificação."
+)
+MENSAGEM_MANUTENCAO_CONCLUSAO = (
+    "✅ Manutenção concluída\n\n"
+    "A manutenção foi finalizada com sucesso e o bot já está liberado para uso novamente.\n\n"
+    "Toque em /start para continuar."
+)
+
 ARQUIVOS_JSON_RUNTIME = {
     "totais_semanais.json": None,
     "pedidos_pendentes.json": {},
@@ -257,6 +289,7 @@ ARQUIVOS_JSON_RUNTIME = {
 _MP_PAYMENTS_LOCK = threading.Lock()
 _MP_PAYMENTS_EM_PROCESSAMENTO = set()
 _FECHAMENTO_SEMANAL_LOCK = asyncio.Lock()
+_MANUTENCAO_LOCK = asyncio.Lock()
 
 
 def agora_br() -> datetime:
@@ -670,6 +703,71 @@ def cargo_usuario_update(update: Update) -> str:
     return cargo_usuario_id(telegram_id_update(update))
 
 
+def eh_dono(update: Update) -> bool:
+    telegram_id = telegram_id_update(update)
+    return cargo_usuario_id(telegram_id) == CARGO_DONO and (
+        id_administrador_sistema(telegram_id)
+        or bool(
+            (obter_usuario_registrado(telegram_id) or {}).get("status")
+            == "aprovado"
+        )
+    )
+
+
+def carregar_estado_manutencao() -> dict:
+    estado = DB.carregar_configuracao(
+        CONFIG_MANUTENCAO_CHAVE,
+        {"ativa": False},
+    )
+    estado["ativa"] = bool(estado.get("ativa"))
+    return estado
+
+
+def manutencao_ativa() -> bool:
+    return bool(carregar_estado_manutencao().get("ativa"))
+
+
+def definir_estado_manutencao(
+    ativa: bool,
+    update: Update | None = None,
+) -> dict:
+    estado = carregar_estado_manutencao()
+    momento = agora_br().strftime("%d/%m/%Y %H:%M:%S")
+    responsavel_id = telegram_id_update(update) if update else ""
+    responsavel_nome = (
+        update.effective_user.full_name
+        if update and update.effective_user
+        else "Dono"
+    )
+
+    estado["ativa"] = bool(ativa)
+    estado["atualizado_em"] = momento
+    if ativa:
+        estado["iniciada_em"] = momento
+        estado["iniciada_por_id"] = responsavel_id
+        estado["iniciada_por_nome"] = responsavel_nome
+        estado.pop("concluida_em", None)
+        estado.pop("concluida_por_id", None)
+        estado.pop("concluida_por_nome", None)
+    else:
+        estado["concluida_em"] = momento
+        estado["concluida_por_id"] = responsavel_id
+        estado["concluida_por_nome"] = responsavel_nome
+
+    DB.salvar_configuracao(CONFIG_MANUTENCAO_CHAVE, estado)
+    return estado
+
+
+def ids_usuarios_notificacao() -> list[str]:
+    """Retorna todos os Telegram IDs válidos presentes no cadastro."""
+    ids = []
+    for telegram_id in carregar_usuarios_registrados().keys():
+        telegram_id = str(telegram_id or "").strip()
+        if telegram_id and telegram_id.lstrip("-").isdigit():
+            ids = ids_unicos(*ids, telegram_id)
+    return ids
+
+
 def definir_cargo_registro(
     registro: dict,
     cargo_novo: str,
@@ -853,15 +951,96 @@ def menu_registro(update: Update | None = None) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(keyboard)
 
 
+def deve_enviar_imagem_registro(texto: str) -> bool:
+    """A arte é usada somente na tela inicial de cadastro obrigatório."""
+    return texto.lstrip().startswith("🔐 *Cadastro obrigatório*")
+
+
+async def enviar_acesso_bloqueado(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela de acesso; no cadastro obrigatório, inclui a arte."""
+    texto = texto_acesso_bloqueado(update)
+    reply_markup = menu_registro(update)
+    chat = update.effective_chat
+    if not chat:
+        return None
+
+    query = update.callback_query
+    if query:
+        try:
+            await query.answer()
+        except Exception:
+            pass
+
+    mensagem = None
+    if deve_enviar_imagem_registro(texto) and REGISTRO_IMAGE_PATH.exists():
+        try:
+            with open(REGISTRO_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem de cadastro obrigatório: %s", exc)
+
+    if mensagem is None:
+        mensagem = await context.bot.send_message(
+            chat_id=chat.id,
+            text=texto,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=reply_markup,
+            disable_web_page_preview=True,
+        )
+
+    # Ao navegar por um botão, substitui a tela anterior para não empilhar mensagens.
+    if query and query.message and query.message.message_id != mensagem.message_id:
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
 async def bloquear_se_sem_acesso(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     if eh_admin(update) or registro_aprovado(update):
         return False
-    mensagem = update.effective_message
-    if mensagem:
-        await mensagem.reply_text(
-            texto_acesso_bloqueado(update),
+    if update.effective_message:
+        await enviar_acesso_bloqueado(update, context)
+    return True
+
+
+async def bloquear_se_manutencao(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> bool:
+    """Bloqueia qualquer interação durante a manutenção, exceto para donos."""
+    if not manutencao_ativa() or eh_dono(update):
+        return False
+
+    context.user_data.clear()
+    query = update.callback_query
+    if query:
+        try:
+            await query.answer(
+                "O bot está em manutenção. Aguarde a notificação de conclusão.",
+                show_alert=True,
+            )
+        except Exception:
+            pass
+        return True
+
+    if update.effective_message:
+        await update.effective_message.reply_text(
+            MENSAGEM_MANUTENCAO_BLOQUEIO,
             parse_mode=ParseMode.MARKDOWN,
-            reply_markup=menu_registro(update),
+            disable_web_page_preview=True,
         )
     return True
 
@@ -1087,8 +1266,8 @@ async def iniciar_registro_usuario(update: Update, context: ContextTypes.DEFAULT
 
     context.user_data.clear()
     context.user_data["registro_em_andamento"] = True
-    await safe_edit_or_reply(
-        update,
+
+    texto = (
         "📝 *Criar cadastro*\n\n"
         "Envie seu usuário e senha na mesma mensagem, separados por espaço.\n\n"
         "Exemplo:\n"
@@ -1096,15 +1275,37 @@ async def iniciar_registro_usuario(update: Update, context: ContextTypes.DEFAULT
         "Regras do usuário:\n"
         "• 4 a 30 caracteres\n"
         "• letras, números, ponto, traço ou underline\n\n"
-        "A senha precisa ter no mínimo 6 caracteres.",
-        InlineKeyboardMarkup([[btn("⬅️ Voltar", "voltar:inicio")]]),
+        "A senha precisa ter no mínimo 6 caracteres."
     )
+    reply_markup = InlineKeyboardMarkup([[btn("⬅️ Voltar", "voltar:inicio")]])
+    chat = update.effective_chat
+    mensagem = None
+
+    if chat and CRIAR_REGISTRO_IMAGE_PATH.exists():
+        try:
+            with open(CRIAR_REGISTRO_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem da tela Criar cadastro: %s", exc)
+
+    if mensagem is None:
+        mensagem = await safe_edit_or_reply(update, texto, reply_markup)
+    elif query and query.message and query.message.message_id != mensagem.message_id:
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    return mensagem
 
 async def mostrar_status_registro(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    if query:
-        await query.answer()
-    await safe_edit_or_reply(update, texto_acesso_bloqueado(update), menu_registro(update))
+    await enviar_acesso_bloqueado(update, context)
 
 
 async def processar_texto_registro(update: Update, context: ContextTypes.DEFAULT_TYPE, texto_usuario: str) -> bool:
@@ -1340,13 +1541,132 @@ async def negar_registro_admin(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 
-def menu_painel_admin() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
+def menu_painel_admin(update: Update | None = None) -> InlineKeyboardMarkup:
+    keyboard = [
         [btn("📒 Relatórios", "admin_painel:relatorios")],
         [btn("📒 Consultar Cadastros", "admin_painel:consultar_cadastros")],
         [btn("📒 Consultar Vendedores", "admin_painel:consultar_vendedores")],
         [btn("🪪 Cargos", "admin_painel:cargos")],
+    ]
+    if update is not None and eh_dono(update):
+        keyboard.append([btn("📢 Notificações", "admin_painel:notificacoes")])
+    return InlineKeyboardMarkup(keyboard)
+
+
+def menu_notificacoes_admin() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [btn("⚙️ Notificar Manutenção.", "admin_notificacoes:manutencao")],
+        [btn("⬅️ Voltar ao painel", "admin_painel:inicio")],
     ])
+
+
+def menu_manutencao_admin() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [btn("⚙️ Notificar Início", "admin_notificacoes:inicio")],
+        [btn("⚙️ Notificar Conclusão", "admin_notificacoes:conclusao")],
+        [btn("⬅️ Voltar", "admin_painel:notificacoes")],
+    ])
+
+
+def texto_notificacoes_admin() -> str:
+    return (
+        "📢 *Notificações*\n\n"
+        "Escolha o tipo de aviso que deseja enviar aos usuários registrados."
+    )
+
+
+def texto_manutencao_admin() -> str:
+    estado = "🔴 Ativa" if manutencao_ativa() else "🟢 Bot liberado"
+    return (
+        "⚙️ *Notificar Manutenção*\n\n"
+        f"*Status atual:* {estado}\n\n"
+        "• *Notificar Início:* avisa todos os usuários e bloqueia o bot imediatamente.\n"
+        "• *Notificar Conclusão:* avisa todos os usuários e libera o acesso novamente.\n\n"
+        "Durante a manutenção, somente usuários com cargo *Dono* podem utilizar o bot."
+    )
+
+
+async def enviar_notificacao_usuarios(bot, texto: str) -> dict:
+    """Envia o aviso em ritmo seguro e continua mesmo se um chat falhar."""
+    destinatarios = ids_usuarios_notificacao()
+    enviadas = 0
+    falhas = []
+
+    for indice, telegram_id in enumerate(destinatarios):
+        try:
+            await bot.send_message(
+                chat_id=telegram_id,
+                text=texto,
+                disable_web_page_preview=True,
+            )
+            enviadas += 1
+        except Exception as exc:
+            falhas.append(telegram_id)
+            logging.warning(
+                "Falha ao enviar notificação de manutenção para %s: %s",
+                telegram_id,
+                exc,
+            )
+
+        # Mantém o disparo abaixo do limite global usual do Telegram.
+        if indice < len(destinatarios) - 1:
+            await asyncio.sleep(0.05)
+
+    return {
+        "total": len(destinatarios),
+        "enviadas": enviadas,
+        "falhas": falhas,
+    }
+
+
+def registrar_resultado_notificacao_manutencao(tipo: str, resultado: dict):
+    estado = carregar_estado_manutencao()
+    estado[f"ultima_notificacao_{tipo}"] = {
+        "em": agora_br().strftime("%d/%m/%Y %H:%M:%S"),
+        "total": int(resultado.get("total") or 0),
+        "enviadas": int(resultado.get("enviadas") or 0),
+        "falhas": len(resultado.get("falhas") or []),
+    }
+    DB.salvar_configuracao(CONFIG_MANUTENCAO_CHAVE, estado)
+
+
+async def editar_callback_sem_responder(
+    query,
+    texto: str,
+    reply_markup=None,
+):
+    """Atualiza uma callback que já foi respondida, sem respondê-la duas vezes."""
+    try:
+        await query.edit_message_text(
+            text=texto,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=reply_markup,
+            disable_web_page_preview=True,
+        )
+        return
+    except BadRequest as exc:
+        if "Message is not modified" in str(exc):
+            return
+    except Exception:
+        pass
+
+    if query.message:
+        await query.message.reply_text(
+            text=texto,
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=reply_markup,
+            disable_web_page_preview=True,
+        )
+
+
+def resumo_disparo_manutencao(resultado: dict) -> str:
+    total = int(resultado.get("total") or 0)
+    enviadas = int(resultado.get("enviadas") or 0)
+    falhas = len(resultado.get("falhas") or [])
+    linhas = [f"📨 *Notificações enviadas:* {enviadas} de {total}"]
+    if falhas:
+        linhas.append(f"⚠️ *Falhas de envio:* {falhas}")
+    return "\n".join(linhas)
 
 
 def menu_relatorios_admin() -> InlineKeyboardMarkup:
@@ -1708,6 +2028,8 @@ def buscar_usuario_admin(termo: str) -> str:
 
 
 async def painel_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if await bloquear_se_manutencao(update, context):
+        return
     if not eh_admin(update):
         await update.message.reply_text("Apenas administradores podem abrir este painel.")
         return
@@ -1715,7 +2037,7 @@ async def painel_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensagem = await update.message.reply_text(
         texto_painel_admin(),
         parse_mode=ParseMode.MARKDOWN,
-        reply_markup=menu_painel_admin(),
+        reply_markup=menu_painel_admin(update),
         disable_web_page_preview=True,
     )
     guardar_mensagem_bot(context, mensagem)
@@ -1726,7 +2048,173 @@ async def mostrar_painel_admin(update: Update, context: ContextTypes.DEFAULT_TYP
         await update.callback_query.answer("Apenas administradores podem usar este painel.", show_alert=True)
         return
     context.user_data.clear()
-    await safe_edit_or_reply(update, texto_painel_admin(), menu_painel_admin())
+    await safe_edit_or_reply(update, texto_painel_admin(), menu_painel_admin(update))
+
+
+async def mostrar_notificacoes_admin(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    if not eh_dono(update):
+        await update.callback_query.answer(
+            "Somente usuários com cargo Dono podem acessar as notificações.",
+            show_alert=True,
+        )
+        return
+    context.user_data.clear()
+    await safe_edit_or_reply(
+        update,
+        texto_notificacoes_admin(),
+        menu_notificacoes_admin(),
+    )
+
+
+async def mostrar_manutencao_admin(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    if not eh_dono(update):
+        await update.callback_query.answer(
+            "Somente usuários com cargo Dono podem controlar a manutenção.",
+            show_alert=True,
+        )
+        return
+    context.user_data.clear()
+    await safe_edit_or_reply(
+        update,
+        texto_manutencao_admin(),
+        menu_manutencao_admin(),
+    )
+
+
+async def notificar_inicio_manutencao(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    query = update.callback_query
+    if not eh_dono(update):
+        await query.answer(
+            "Somente usuários com cargo Dono podem iniciar a manutenção.",
+            show_alert=True,
+        )
+        return
+
+    async with _MANUTENCAO_LOCK:
+        if manutencao_ativa():
+            await query.answer("A manutenção já está ativa.", show_alert=True)
+            await editar_callback_sem_responder(
+                query,
+                texto_manutencao_admin(),
+                menu_manutencao_admin(),
+            )
+            return
+
+        await query.answer("Ativando manutenção e enviando os avisos...")
+        try:
+            definir_estado_manutencao(True, update)
+        except Exception as exc:
+            logging.exception("Falha ao ativar o modo de manutenção: %s", exc)
+            await editar_callback_sem_responder(
+                query,
+                (
+                    "❌ *Não foi possível iniciar a manutenção*\n\n"
+                    "O estado do bot não foi alterado. Tente novamente."
+                ),
+                menu_manutencao_admin(),
+            )
+            return
+
+        await editar_callback_sem_responder(
+            query,
+            (
+                "⏳ *Manutenção ativada*\n\n"
+                "O bot já está bloqueado para todos, exceto donos.\n"
+                "Enviando a notificação aos usuários registrados..."
+            ),
+        )
+        resultado = await enviar_notificacao_usuarios(
+            context.bot,
+            MENSAGEM_MANUTENCAO_INICIO,
+        )
+        try:
+            registrar_resultado_notificacao_manutencao("inicio", resultado)
+        except Exception as exc:
+            logging.warning("Falha ao salvar o resultado da notificação inicial: %s", exc)
+
+        await editar_callback_sem_responder(
+            query,
+            (
+                "✅ *Manutenção iniciada*\n\n"
+                "O bot está bloqueado para todos os usuários, exceto quem tem cargo Dono.\n\n"
+                f"{resumo_disparo_manutencao(resultado)}"
+            ),
+            menu_manutencao_admin(),
+        )
+
+
+async def notificar_conclusao_manutencao(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    query = update.callback_query
+    if not eh_dono(update):
+        await query.answer(
+            "Somente usuários com cargo Dono podem concluir a manutenção.",
+            show_alert=True,
+        )
+        return
+
+    async with _MANUTENCAO_LOCK:
+        if not manutencao_ativa():
+            await query.answer("O bot já está liberado.", show_alert=True)
+            await editar_callback_sem_responder(
+                query,
+                texto_manutencao_admin(),
+                menu_manutencao_admin(),
+            )
+            return
+
+        await query.answer("Liberando o bot e enviando os avisos...")
+        try:
+            definir_estado_manutencao(False, update)
+        except Exception as exc:
+            logging.exception("Falha ao concluir o modo de manutenção: %s", exc)
+            await editar_callback_sem_responder(
+                query,
+                (
+                    "❌ *Não foi possível concluir a manutenção*\n\n"
+                    "O bot continua bloqueado. Tente novamente."
+                ),
+                menu_manutencao_admin(),
+            )
+            return
+
+        await editar_callback_sem_responder(
+            query,
+            (
+                "⏳ *Bot liberado*\n\n"
+                "O acesso já foi restaurado.\n"
+                "Enviando a notificação de conclusão aos usuários registrados..."
+            ),
+        )
+        resultado = await enviar_notificacao_usuarios(
+            context.bot,
+            MENSAGEM_MANUTENCAO_CONCLUSAO,
+        )
+        try:
+            registrar_resultado_notificacao_manutencao("conclusao", resultado)
+        except Exception as exc:
+            logging.warning("Falha ao salvar o resultado da notificação final: %s", exc)
+
+        await editar_callback_sem_responder(
+            query,
+            (
+                "✅ *Manutenção concluída*\n\n"
+                "O bot está liberado para todos os usuários registrados.\n\n"
+                f"{resumo_disparo_manutencao(resultado)}"
+            ),
+            menu_manutencao_admin(),
+        )
 
 
 async def mostrar_menu_relatorios_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2513,7 +3001,7 @@ async def processar_texto_admin_painel(update: Update, context: ContextTypes.DEF
         reply_markup = menu_consultar_cadastros_admin()
     else:
         resposta = "⚠️ Ação inválida. Abra o /painel novamente."
-        reply_markup = menu_painel_admin()
+        reply_markup = menu_painel_admin(update)
 
     context.user_data.clear()
     await update.message.reply_text(
@@ -6087,6 +6575,472 @@ async def safe_edit_or_reply(update: Update, text: str, reply_markup=None, parse
         )
 
 
+async def enviar_catalogo_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia o catálogo com a arte, a mensagem e os botões de categorias."""
+    texto = CATALOGO["mensagens"]["catalogo"]
+    reply_markup = menu_catalogos()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if CATALOGO_IMAGE_PATH.exists():
+        try:
+            with open(CATALOGO_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do catálogo: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_iptv_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela do IPTV XCIPTV com a arte, a mensagem e o botão do plano."""
+    texto = CATALOGO["catalogos"]["iptv"]["mensagem"]
+    reply_markup = menu_iptv()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if IPTV_IMAGE_PATH.exists():
+        try:
+            with open(IPTV_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do IPTV XCIPTV: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_engajamentos_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela de engajamentos com a arte e os botões das plataformas."""
+    texto = (
+        "🚀 *Engajamentos*\n\n"
+        "Escolha abaixo a plataforma que deseja impulsionar.\n\n"
+        "✅ Entrega organizada\n"
+        "✅ Pedido conferido antes da finalização\n"
+        "✅ Suporte caso precise de ajuda\n\n"
+        "Toque em uma opção para continuar:"
+    )
+    reply_markup = menu_redes_sociais()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if ENGAJAMENTOS_IMAGE_PATH.exists():
+        try:
+            with open(ENGAJAMENTOS_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem de engajamentos: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_instagram_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela do Instagram com a arte e os botões dos serviços."""
+    texto = (
+        "📸 *Instagram*\n\n"
+        "Escolha abaixo o tipo de serviço que deseja contratar.\n\n"
+        "Você pode selecionar pacotes para perfil ou publicação, com pedido organizado e conferência antes da finalização.\n\n"
+        "Toque em uma opção para continuar:"
+    )
+    reply_markup = menu_instagram()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if INSTAGRAM_IMAGE_PATH.exists():
+        try:
+            with open(INSTAGRAM_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do Instagram: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_instagram_estrangeiros_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela dos serviços estrangeiros do Instagram com a arte e os botões."""
+    texto = (
+        "🌏 *Instagram — Serviços Estrangeiros*\n\n"
+        "Pacotes com entrega gradual para perfis e publicações do Instagram.\n\n"
+        "📌 *Opções disponíveis:*\n"
+        "• Seguidores para perfil\n"
+        "• Curtidas para publicação\n"
+        "• Visualizações para publicação\n\n"
+        "Escolha o serviço que deseja:"
+    )
+    reply_markup = menu_instagram_estrangeiros()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if INSTAGRAM_ESTRANGEIROS_IMAGE_PATH.exists():
+        try:
+            with open(INSTAGRAM_ESTRANGEIROS_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do Instagram estrangeiros: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_instagram_brasileiros_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela dos serviços brasileiros do Instagram com a arte e os botões."""
+    texto = (
+        "🇧🇷 *Instagram — Serviços Brasileiros*\n\n"
+        "Pacotes com entrega gradual para perfis brasileiros do Instagram.\n\n"
+        "📌 *Opção disponível:*\n"
+        "• Seguidores brasileiros para perfil\n\n"
+        "Escolha o serviço que deseja:"
+    )
+    reply_markup = menu_instagram_brasileiros()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if INSTAGRAM_BRASILEIROS_IMAGE_PATH.exists():
+        try:
+            with open(INSTAGRAM_BRASILEIROS_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do Instagram brasileiros: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_tiktok_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela do TikTok com a arte e os botões dos serviços."""
+    texto = (
+        "🎵 *TikTok*\n\n"
+        "Escolha abaixo o tipo de serviço que deseja contratar.\n\n"
+        "Você pode selecionar pacotes para perfil ou publicação, com pedido organizado e conferência antes da finalização.\n\n"
+        "Toque em uma opção para continuar:"
+    )
+    reply_markup = menu_tiktok()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if TIKTOK_IMAGE_PATH.exists():
+        try:
+            with open(TIKTOK_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do TikTok: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_tiktok_estrangeiros_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela dos serviços estrangeiros do TikTok com a arte e os botões."""
+    texto = (
+        "🌏 *TikTok — Serviços Estrangeiros*\n\n"
+        "Pacotes com entrega gradual para perfis e publicações do TikTok.\n\n"
+        "📌 *Opções disponíveis:*\n"
+        "• Seguidores para perfil\n"
+        "• Curtidas para publicação\n"
+        "• Visualizações para publicação\n\n"
+        "Escolha o serviço que deseja:"
+    )
+    reply_markup = menu_tiktok_estrangeiros()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if TIKTOK_ESTRANGEIROS_IMAGE_PATH.exists():
+        try:
+            with open(TIKTOK_ESTRANGEIROS_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do TikTok estrangeiros: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_kwai_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela do Kwai com a arte e os botões dos serviços."""
+    texto = (
+        "🟠 *Kwai*\n\n"
+        "Escolha abaixo o tipo de serviço que deseja contratar.\n\n"
+        "Toque em uma opção para continuar:"
+    )
+    reply_markup = menu_kwai()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if KWAI_IMAGE_PATH.exists():
+        try:
+            with open(KWAI_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do Kwai: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
+async def enviar_kwai_brasileiros_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+):
+    """Envia a tela de Kwai brasileiros com a arte e os botões dos serviços."""
+    texto = (
+        "🇧🇷 *Kwai — Serviços Brasileiros*\n\n"
+        "Escolha o serviço que deseja contratar:"
+    )
+    reply_markup = menu_kwai_brasileiros()
+
+    if update.callback_query:
+        query = update.callback_query
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    if KWAI_BRASILEIROS_IMAGE_PATH.exists():
+        try:
+            with open(KWAI_BRASILEIROS_IMAGE_PATH, "rb") as photo:
+                mensagem = await context.bot.send_photo(
+                    chat_id=update.effective_chat.id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup,
+                )
+            guardar_mensagem_bot(context, mensagem)
+            return mensagem
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem do Kwai brasileiros: %s", exc)
+
+    mensagem = await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=texto,
+        parse_mode=ParseMode.MARKDOWN,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
+
+
 async def enviar_assinatura_cliente(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -6150,6 +7104,44 @@ async def enviar_assinatura_cliente(
     return mensagem
 
 
+def primeira_imagem_existente(*paths: Path | None) -> Path | None:
+    for caminho in paths:
+        if caminho and caminho.exists():
+            return caminho
+    return None
+
+
+async def enviar_mensagem_com_imagem_chat(
+    context: ContextTypes.DEFAULT_TYPE,
+    chat_id,
+    texto: str,
+    reply_markup=None,
+    parse_mode=ParseMode.MARKDOWN,
+    image_paths: list[Path] | None = None,
+):
+    imagem_path = primeira_imagem_existente(*(image_paths or []))
+    if imagem_path:
+        try:
+            with open(imagem_path, "rb") as photo:
+                return await context.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=photo,
+                    caption=texto,
+                    parse_mode=parse_mode,
+                    reply_markup=reply_markup,
+                )
+        except Exception as exc:
+            logging.warning("Falha ao enviar imagem %s: %s", imagem_path.name, exc)
+
+    return await context.bot.send_message(
+        chat_id=chat_id,
+        text=texto,
+        parse_mode=parse_mode,
+        reply_markup=reply_markup,
+        disable_web_page_preview=True,
+    )
+
+
 async def enviar_atendimento_cliente(update: Update, context: ContextTypes.DEFAULT_TYPE, texto: str, reply_markup=None):
     """Envia a tela de Fale Conosco com a arte de suporte."""
     if update.callback_query:
@@ -6160,35 +7152,16 @@ async def enviar_atendimento_cliente(update: Update, context: ContextTypes.DEFAU
         except Exception:
             pass
 
-    if SUPORTE_IMAGE_PATH.exists():
-        try:
-            with open(SUPORTE_IMAGE_PATH, "rb") as photo:
-                mensagem = await context.bot.send_photo(
-                    chat_id=update.effective_chat.id,
-                    photo=photo,
-                    caption=texto,
-                    parse_mode=ParseMode.MARKDOWN,
-                    reply_markup=reply_markup,
-                )
-            guardar_mensagem_bot(context, mensagem)
-            return mensagem
-        except Exception as exc:
-            logging.warning("Falha ao enviar imagem de suporte: %s", exc)
-
-    if update.callback_query:
-        return await update.callback_query.message.reply_text(
-            text=texto,
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=reply_markup,
-            disable_web_page_preview=True,
-        )
-
-    return await update.message.reply_text(
-        text=texto,
-        parse_mode=ParseMode.MARKDOWN,
+    mensagem = await enviar_mensagem_com_imagem_chat(
+        context,
+        update.effective_chat.id,
+        texto,
         reply_markup=reply_markup,
-        disable_web_page_preview=True,
+        parse_mode=ParseMode.MARKDOWN,
+        image_paths=[SUPORTE_IMAGE_PATH, TICKET_STATUS_IMAGE_PATH],
     )
+    guardar_mensagem_bot(context, mensagem)
+    return mensagem
 
 
 def ticket_id_texto(ticket_id) -> str:
@@ -6202,6 +7175,72 @@ def botoes_ticket(ticket_id) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [btn("🔒 Fechar ticket", f"ticket:fechar:{int(ticket_id)}")],
     ])
+
+
+def menu_suporte_cliente() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [btn("🎟️ abrir ticket", "suporte:chat")],
+        [btn("⬅️ Voltar", "voltar:inicio")],
+    ])
+
+
+def texto_menu_suporte() -> str:
+    return (
+        CATALOGO.get("menus_extras", {}).get("atendimento")
+        or "🎫 Precisa de ajuda? Fale com o suporte."
+    )
+
+
+async def apagar_status_ticket_cliente(context: ContextTypes.DEFAULT_TYPE, ticket: dict) -> dict:
+    dados = dict(ticket.get("dados") or {})
+    status_msg = dados.pop("cliente_status_msg", None) or {}
+    chat_id = status_msg.get("chat_id")
+    message_id = status_msg.get("message_id")
+    if chat_id and message_id:
+        try:
+            await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        except Exception:
+            pass
+    atualizado = DB.atualizar_dados_ticket(ticket["id"], dados)
+    return atualizado or {**ticket, "dados": dados}
+
+
+async def enviar_status_ticket_cliente(
+    context: ContextTypes.DEFAULT_TYPE,
+    ticket: dict,
+    texto: str,
+    reply_markup=None,
+) -> dict:
+    ticket = await apagar_status_ticket_cliente(context, ticket)
+    mensagem = await enviar_mensagem_com_imagem_chat(
+        context,
+        ticket["usuario_id"],
+        texto,
+        reply_markup=reply_markup,
+        parse_mode=ParseMode.MARKDOWN,
+        image_paths=[TICKET_STATUS_IMAGE_PATH, SUPORTE_IMAGE_PATH],
+    )
+    dados = dict(ticket.get("dados") or {})
+    dados["cliente_status_msg"] = {
+        "chat_id": str(mensagem.chat.id if mensagem.chat else ticket["usuario_id"]),
+        "message_id": mensagem.message_id,
+    }
+    atualizado = DB.atualizar_dados_ticket(ticket["id"], dados)
+    return atualizado or {**ticket, "dados": dados}
+
+
+async def enviar_menu_suporte_para_chat(
+    context: ContextTypes.DEFAULT_TYPE,
+    chat_id,
+):
+    return await enviar_mensagem_com_imagem_chat(
+        context,
+        chat_id,
+        texto_menu_suporte(),
+        reply_markup=menu_suporte_cliente(),
+        parse_mode=ParseMode.MARKDOWN,
+        image_paths=[SUPORTE_IMAGE_PATH, TICKET_STATUS_IMAGE_PATH],
+    )
 
 
 def texto_ticket_aguardando(ticket: dict) -> str:
@@ -6306,8 +7345,10 @@ async def notificar_equipe_novo_ticket(
 
 async def abrir_ticket_suporte(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    query = update.callback_query
     if not user:
-        await update.callback_query.answer("Não consegui identificar sua conta.", show_alert=True)
+        if query:
+            await query.answer("Não consegui identificar sua conta.", show_alert=True)
         return
 
     ticket, criado = DB.criar_ticket(
@@ -6320,7 +7361,19 @@ async def abrir_ticket_suporte(update: Update, context: ContextTypes.DEFAULT_TYP
     else:
         texto = texto_ticket_aguardando(ticket)
 
-    await safe_edit_or_reply(update, texto, botoes_ticket(ticket["id"]))
+    if query:
+        await query.answer()
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+
+    ticket = await enviar_status_ticket_cliente(
+        context,
+        ticket,
+        texto,
+        botoes_ticket(ticket["id"]),
+    )
     if criado:
         await notificar_equipe_novo_ticket(context, ticket)
 
@@ -6379,11 +7432,11 @@ async def assumir_ticket_suporte(
     )
 
     try:
-        await context.bot.send_message(
-            chat_id=ticket["usuario_id"],
-            text=texto_ticket_em_atendimento(ticket),
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=botoes_ticket(ticket["id"]),
+        ticket = await enviar_status_ticket_cliente(
+            context,
+            ticket,
+            texto_ticket_em_atendimento(ticket),
+            botoes_ticket(ticket["id"]),
         )
     except Exception as exc:
         logging.warning("Falha ao avisar cliente sobre ticket assumido %s: %s", numero, exc)
@@ -6425,6 +7478,11 @@ async def fechar_ticket_suporte(
         return
 
     await query.answer("Ticket fechado.")
+    try:
+        await query.message.delete()
+    except Exception:
+        pass
+
     numero = ticket_id_texto(ticket.get("id"))
     texto = (
         "🔒 *Ticket fechado*\n\n"
@@ -6433,18 +7491,36 @@ async def fechar_ticket_suporte(
         "Para solicitar outro atendimento, abra o menu de suporte."
     )
     await atualizar_notificacoes_ticket(context, ticket, texto)
+    ticket = await apagar_status_ticket_cliente(context, ticket)
 
-    destinatarios = ids_unicos(ticket.get("usuario_id"), ticket.get("atendente_id"))
-    for destinatario in destinatarios:
+    cliente_id = str(ticket.get("usuario_id") or "")
+    atendente_id = str(ticket.get("atendente_id") or "")
+
+    if cliente_id:
+        try:
+            await enviar_menu_suporte_para_chat(context, cliente_id)
+        except Exception as exc:
+            logging.warning(
+                "Falha ao retornar menu de suporte para %s no ticket %s: %s",
+                cliente_id,
+                numero,
+                exc,
+            )
+
+    if atendente_id and atendente_id != str(autor_id or ""):
         try:
             await context.bot.send_message(
-                chat_id=destinatario,
+                chat_id=atendente_id,
                 text=texto,
                 parse_mode=ParseMode.MARKDOWN,
-                reply_markup=InlineKeyboardMarkup([[btn("🏠 Menu inicial", "voltar:inicio")]]),
             )
         except Exception as exc:
-            logging.warning("Falha ao avisar %s sobre fechamento do ticket %s: %s", destinatario, numero, exc)
+            logging.warning(
+                "Falha ao avisar %s sobre fechamento do ticket %s: %s",
+                atendente_id,
+                numero,
+                exc,
+            )
 
 
 def localizar_ticket_remetente(telegram_id: str) -> tuple[dict | None, str | None, str | None]:
@@ -6559,14 +7635,10 @@ async def enviar_inicio_cliente(update: Update, context: ContextTypes.DEFAULT_TY
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
+    if await bloquear_se_manutencao(update, context):
+        return
     if not registro_aprovado(update):
-        mensagem = await update.message.reply_text(
-            texto_acesso_bloqueado(update),
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=menu_registro(update),
-            disable_web_page_preview=True,
-        )
-        guardar_mensagem_bot(context, mensagem)
+        await enviar_acesso_bloqueado(update, context)
         return
 
     await enviar_inicio_cliente(update, context)
@@ -6807,16 +7879,6 @@ async def aprovar_pagamento_admin(update: Update, context: ContextTypes.DEFAULT_
         logging.warning("Falha ao avisar cliente sobre aprovação: %s", exc)
 
 
-def eh_dono(update: Update) -> bool:
-    return cargo_usuario_update(update) == CARGO_DONO and (
-        id_administrador_sistema(telegram_id_update(update))
-        or bool(
-            (obter_usuario_registrado(telegram_id_update(update)) or {}).get("status")
-            == "aprovado"
-        )
-    )
-
-
 def nome_admin(update: Update) -> str:
     return update.effective_user.full_name if update.effective_user else "Administrador"
 
@@ -7038,6 +8100,9 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query and query.message:
         guardar_mensagem_bot(context, query.message)
 
+    if await bloquear_se_manutencao(update, context):
+        return
+
     if data.startswith("admin_revisao_feito:"):
         pedido_id = data.split(":", 1)[1]
         await admin_revisao_ja_foi(update, context, pedido_id)
@@ -7073,6 +8138,22 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "admin_painel:inicio":
         await mostrar_painel_admin(update, context)
+        return
+
+    if data == "admin_painel:notificacoes":
+        await mostrar_notificacoes_admin(update, context)
+        return
+
+    if data == "admin_notificacoes:manutencao":
+        await mostrar_manutencao_admin(update, context)
+        return
+
+    if data == "admin_notificacoes:inicio":
+        await notificar_inicio_manutencao(update, context)
+        return
+
+    if data == "admin_notificacoes:conclusao":
+        await notificar_conclusao_manutencao(update, context)
         return
 
     if data == "admin_painel:relatorios":
@@ -7302,20 +8383,11 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data == "menu:catalogo":
-        await safe_edit_or_reply(update, CATALOGO["mensagens"]["catalogo"], menu_catalogos())
+        await enviar_catalogo_cliente(update, context)
         return
 
     if data == "catalogo:redes_sociais":
-        await safe_edit_or_reply(
-            update,
-            "🚀 *Engajamentos*\n\n"
-            "Escolha abaixo a plataforma que deseja impulsionar.\n\n"
-            "✅ Entrega organizada\n"
-            "✅ Pedido conferido antes da finalização\n"
-            "✅ Suporte caso precise de ajuda\n\n"
-            "Toque em uma opção para continuar:",
-            menu_redes_sociais(),
-        )
+        await enviar_engajamentos_cliente(update, context)
         return
 
     if data == "catalogo:assinaturas":
@@ -7370,42 +8442,22 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         keyboard = [[btn("⬅️ Voltar", "voltar:inicio")]]
         if extra == "atendimento":
-            keyboard.insert(0, [btn("💬 Atendimento via chat", "suporte:chat")])
-            keyboard.insert(1, [InlineKeyboardButton("🎟️ Suporte pelo Discord", url="https://discord.gg/uHSZDD8QFC")])
-            await enviar_atendimento_cliente(update, context, texto, InlineKeyboardMarkup(keyboard))
+            await enviar_atendimento_cliente(update, context, texto, menu_suporte_cliente())
             return
         await safe_edit_or_reply(update, texto, InlineKeyboardMarkup(keyboard))
         return
 
 
     if data == "catalogo:instagram":
-        await safe_edit_or_reply(update, CATALOGO["catalogos"]["instagram"]["mensagem"], menu_instagram())
+        await enviar_instagram_cliente(update, context)
         return
 
     if data == "catalogo_instagram:estrangeiros":
-        await safe_edit_or_reply(
-            update,
-            "🌏 *Instagram — Serviços Estrangeiros*\n\n"
-            "Pacotes com entrega gradual para perfis e publicações do Instagram.\n\n"
-            "📌 *Opções disponíveis:*\n"
-            "• Seguidores para perfil\n"
-            "• Curtidas para publicação\n"
-            "• Visualizações para publicação\n\n"
-            "Escolha o serviço que deseja:",
-            menu_instagram_estrangeiros(),
-        )
+        await enviar_instagram_estrangeiros_cliente(update, context)
         return
 
     if data == "catalogo_instagram:brasileiros":
-        await safe_edit_or_reply(
-            update,
-            "🇧🇷 *Instagram — Serviços Brasileiros*\n\n"
-            "Pacotes com entrega gradual para perfis brasileiros do Instagram.\n\n"
-            "📌 *Opção disponível:*\n"
-            "• Seguidores brasileiros para perfil\n\n"
-            "Escolha o serviço que deseja:",
-            menu_instagram_brasileiros(),
-        )
+        await enviar_instagram_brasileiros_cliente(update, context)
         return
 
     if data.startswith("servico_instagram_br:"):
@@ -7469,21 +8521,11 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data == "catalogo:tiktok":
-        await safe_edit_or_reply(update, CATALOGO["catalogos"]["tiktok"]["mensagem"], menu_tiktok())
+        await enviar_tiktok_cliente(update, context)
         return
 
     if data == "catalogo_tiktok:estrangeiros":
-        await safe_edit_or_reply(
-            update,
-            "🌏 *TikTok — Serviços Estrangeiros*\n\n"
-            "Pacotes com entrega gradual para perfis e publicações do TikTok.\n\n"
-            "📌 *Opções disponíveis:*\n"
-            "• Seguidores para perfil\n"
-            "• Curtidas para publicação\n"
-            "• Visualizações para publicação\n\n"
-            "Escolha o serviço que deseja:",
-            menu_tiktok_estrangeiros(),
-        )
+        await enviar_tiktok_estrangeiros_cliente(update, context)
         return
 
     if data.startswith("servico_tiktok:"):
@@ -7529,16 +8571,12 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "catalogo:kwai":
         context.user_data.pop("pedido", None)
-        await safe_edit_or_reply(update, CATALOGO["catalogos"]["kwai"]["mensagem"], menu_kwai())
+        await enviar_kwai_cliente(update, context)
         return
 
     if data == "catalogo_kwai:brasileiros":
         context.user_data.pop("pedido", None)
-        await safe_edit_or_reply(
-            update,
-            "🇧🇷 *Kwai — Serviços Brasileiros*\n\nEscolha o serviço que deseja contratar:",
-            menu_kwai_brasileiros(),
-        )
+        await enviar_kwai_brasileiros_cliente(update, context)
         return
 
     if data.startswith("servico_kwai:"):
@@ -7625,7 +8663,7 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
     if data == "catalogo:iptv":
-        await safe_edit_or_reply(update, CATALOGO["catalogos"]["iptv"]["mensagem"], menu_iptv())
+        await enviar_iptv_cliente(update, context)
         return
 
     if data.startswith("item_iptv:"):
@@ -7897,6 +8935,9 @@ async def responder_consulta_pedido(update: Update, context: ContextTypes.DEFAUL
 async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto_usuario = (update.message.text or "").strip()
 
+    if await bloquear_se_manutencao(update, context):
+        return
+
     if await processar_texto_admin_painel(update, context, texto_usuario):
         return
 
@@ -7987,6 +9028,9 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def receber_comprovante(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if await bloquear_se_manutencao(update, context):
+        return
+
     if await bloquear_se_sem_acesso(update, context):
         return
 

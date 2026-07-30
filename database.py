@@ -84,6 +84,12 @@ class BotDatabase:
                     atualizado_em TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS configuracoes (
+                    chave TEXT PRIMARY KEY,
+                    dados_json TEXT NOT NULL,
+                    atualizado_em TEXT
+                );
+
                 CREATE TABLE IF NOT EXISTS webhook_events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     payment_id TEXT NOT NULL UNIQUE,
@@ -335,6 +341,40 @@ class BotDatabase:
                 ON CONFLICT(chave) DO UPDATE SET dados_json=excluded.dados_json, atualizado_em=excluded.atualizado_em
                 """,
                 (self._dump(dados), datetime.now().isoformat(timespec="seconds")),
+            )
+
+    def carregar_configuracao(self, chave: str, padrao: dict | None = None) -> dict:
+        chave = str(chave or "").strip()
+        if not chave:
+            return dict(padrao or {})
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT dados_json FROM configuracoes WHERE chave = ?",
+                (chave,),
+            ).fetchone()
+        if not row:
+            return dict(padrao or {})
+        dados = self._load(row["dados_json"])
+        return dados if isinstance(dados, dict) else dict(padrao or {})
+
+    def salvar_configuracao(self, chave: str, dados: dict):
+        chave = str(chave or "").strip()
+        if not chave:
+            raise ValueError("chave da configuração é obrigatória")
+        with self._lock, self._conn:
+            self._conn.execute(
+                """
+                INSERT INTO configuracoes (chave, dados_json, atualizado_em)
+                VALUES (?, ?, ?)
+                ON CONFLICT(chave) DO UPDATE SET
+                    dados_json=excluded.dados_json,
+                    atualizado_em=excluded.atualizado_em
+                """,
+                (
+                    chave,
+                    self._dump(dict(dados or {})),
+                    datetime.now().isoformat(timespec="seconds"),
+                ),
             )
 
     def enfileirar_webhook(self, payment_id: str, payload: dict | None = None, origem: str = "webhook"):
