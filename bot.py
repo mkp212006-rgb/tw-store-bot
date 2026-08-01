@@ -191,35 +191,15 @@ except ValueError:
 PLATAFORMA_SERVICOS_CACHE = {"expira_em": 0.0, "dados": None}
 
 
-def decimal_env(nome: str, padrao: str, minimo: Decimal = Decimal("0")) -> Decimal:
-    try:
-        valor = Decimal(os.getenv(nome, padrao).strip().replace(",", "."))
-    except (InvalidOperation, AttributeError):
-        valor = Decimal(padrao)
-    if not valor.is_finite() or valor < minimo:
-        return Decimal(padrao)
-    return valor
-
-
-# Precificação dinâmica dos serviços de engajamento.
-PRECO_DINAMICO_SEGURANCA_PERCENTUAL = decimal_env(
-    "PRECO_DINAMICO_SEGURANCA_PERCENTUAL", "10"
-)
-PRECO_DINAMICO_MARGEM_PERCENTUAL = decimal_env(
-    "PRECO_DINAMICO_MARGEM_PERCENTUAL", "29.73"
-)
-PRECO_DINAMICO_TAXA_PERCENTUAL = decimal_env(
-    "PRECO_DINAMICO_TAXA_PERCENTUAL", "1"
-)
-PRECO_DINAMICO_CUSTO_OPERACIONAL = decimal_env(
-    "PRECO_DINAMICO_CUSTO_OPERACIONAL", "0.10"
-)
-PRECO_DINAMICO_VALOR_MINIMO = decimal_env(
-    "PRECO_DINAMICO_VALOR_MINIMO", "0.99", Decimal("0.01")
-)
-PRECO_DINAMICO_ARREDONDAMENTO = decimal_env(
-    "PRECO_DINAMICO_ARREDONDAMENTO", "0.10", Decimal("0.01")
-)
+# Regra fixa de precificação dos serviços de engajamento:
+# custo atual da plataforma x 1,90, acrescido de 10% de segurança.
+# O resultado é arredondado para cima de R$ 0,10 em R$ 0,10 e nunca fica
+# abaixo de R$ 0,99. As constantes são fixas para impedir que configurações
+# antigas do ambiente reativem o modo de cálculo anterior.
+PRECO_DINAMICO_MULTIPLICADOR = Decimal("1.90")
+PRECO_DINAMICO_SEGURANCA_PERCENTUAL = Decimal("10")
+PRECO_DINAMICO_VALOR_MINIMO = Decimal("0.99")
+PRECO_DINAMICO_ARREDONDAMENTO = Decimal("0.10")
 try:
     QUANTIDADE_DINAMICA_MINIMA = int(os.getenv("QUANTIDADE_DINAMICA_MINIMA", "100"))
 except ValueError:
@@ -232,10 +212,6 @@ if QUANTIDADE_DINAMICA_MINIMA < 1:
     QUANTIDADE_DINAMICA_MINIMA = 100
 if QUANTIDADE_DINAMICA_MAXIMA < QUANTIDADE_DINAMICA_MINIMA:
     QUANTIDADE_DINAMICA_MAXIMA = 100000
-if PRECO_DINAMICO_MARGEM_PERCENTUAL + PRECO_DINAMICO_TAXA_PERCENTUAL >= Decimal("100"):
-    PRECO_DINAMICO_MARGEM_PERCENTUAL = Decimal("29.73")
-    PRECO_DINAMICO_TAXA_PERCENTUAL = Decimal("1")
-
 # Mercado Pago — Pix automático.
 # Configure essas variáveis no Railway, nunca direto no código.
 MERCADO_PAGO_ACCESS_TOKEN = os.getenv("MERCADO_PAGO_ACCESS_TOKEN", "").strip()
@@ -5378,23 +5354,12 @@ def arredondar_preco_para_cima(valor: Decimal, passo: Decimal) -> Decimal:
 
 
 def calcular_preco_dinamico(custo_plataforma) -> dict:
-    """Calcula o valor de venda a partir do custo atual retornado pelo painel."""
+    """Aplica a regra fixa de venda ao custo atual retornado pelo painel."""
     custo = decimal_precificacao(custo_plataforma, "custo da plataforma")
-    cem = Decimal("100")
-    custo_protegido = custo * (
-        Decimal("1") + PRECO_DINAMICO_SEGURANCA_PERCENTUAL / cem
+    preco_multiplicado = custo * PRECO_DINAMICO_MULTIPLICADOR
+    preco_bruto = preco_multiplicado * (
+        Decimal("1") + PRECO_DINAMICO_SEGURANCA_PERCENTUAL / Decimal("100")
     )
-    divisor = Decimal("1") - (
-        PRECO_DINAMICO_MARGEM_PERCENTUAL + PRECO_DINAMICO_TAXA_PERCENTUAL
-    ) / cem
-    if divisor <= 0:
-        raise PlataformaAPIConfigError(
-            "A soma da margem e da taxa da precificação precisa ser menor que 100%."
-        )
-
-    preco_bruto = (
-        custo_protegido + PRECO_DINAMICO_CUSTO_OPERACIONAL
-    ) / divisor
     if preco_bruto <= PRECO_DINAMICO_VALOR_MINIMO:
         preco_final = PRECO_DINAMICO_VALOR_MINIMO.quantize(Decimal("0.01"))
     else:
@@ -5405,7 +5370,7 @@ def calcular_preco_dinamico(custo_plataforma) -> dict:
 
     return {
         "custo": custo,
-        "custo_protegido": custo_protegido,
+        "preco_multiplicado": preco_multiplicado,
         "preco_bruto": preco_bruto,
         "preco_final": preco_final,
         "valor": formatar_valor_reais(preco_final),
@@ -5427,12 +5392,12 @@ def aplicar_preco_dinamico_pedido(pedido: dict, estimativa: dict) -> dict:
     pedido["plataforma_custo_estimado"] = format(calculo["custo"], "f")
     pedido["precificacao_dinamica"] = {
         "fonte": "plataforma_api",
+        "regra": "multiplicador_fixo",
+        "multiplicador": format(PRECO_DINAMICO_MULTIPLICADOR, "f"),
         "seguranca_percentual": format(PRECO_DINAMICO_SEGURANCA_PERCENTUAL, "f"),
-        "margem_percentual": format(PRECO_DINAMICO_MARGEM_PERCENTUAL, "f"),
-        "taxa_percentual": format(PRECO_DINAMICO_TAXA_PERCENTUAL, "f"),
-        "custo_operacional": format(PRECO_DINAMICO_CUSTO_OPERACIONAL, "f"),
         "valor_minimo": format(PRECO_DINAMICO_VALOR_MINIMO, "f"),
-        "custo_protegido": format(calculo["custo_protegido"], "f"),
+        "arredondamento": format(PRECO_DINAMICO_ARREDONDAMENTO, "f"),
+        "preco_multiplicado": format(calculo["preco_multiplicado"], "f"),
         "preco_bruto": format(calculo["preco_bruto"], "f"),
         "preco_final": format(calculo["preco_final"], "f"),
         "calculado_em": agora_br().strftime("%d/%m/%Y %H:%M:%S"),
