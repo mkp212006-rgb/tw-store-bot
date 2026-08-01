@@ -98,6 +98,159 @@ class TicketDatabaseTests(unittest.TestCase):
 
 
 @unittest.skipIf(bot is None, f"Dependências de runtime não instaladas: {BOT_IMPORT_ERROR}")
+class TicketMessageCleanupTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db = BotDatabase(Path(self.tmp.name) / "mensagens-ticket.sqlite3")
+        self.db_original = bot.DB
+        bot.DB = self.db
+
+    def tearDown(self):
+        bot.DB = self.db_original
+        self.db._conn.close()
+        self.tmp.cleanup()
+
+    def test_registra_mensagens_sem_duplicar(self):
+        ticket, _ = self.db.criar_ticket("100", "Cliente", "@cliente")
+
+        ticket = bot.registrar_mensagens_ticket(
+            ticket,
+            {"chat_id": "100", "message_id": 10},
+            {"chat_id": 200, "message_id": "20"},
+            {"chat_id": "100", "message_id": 10},
+            None,
+        )
+
+        self.assertEqual(
+            [
+                {"chat_id": "100", "message_id": 10},
+                {"chat_id": "200", "message_id": 20},
+            ],
+            ticket["dados"]["mensagens_ticket"],
+        )
+
+    def test_apaga_historico_status_e_notificacoes_do_ticket(self):
+        ticket, _ = self.db.criar_ticket("100", "Cliente", "@cliente")
+        ticket = self.db.atualizar_dados_ticket(
+            ticket["id"],
+            {
+                "mensagens_ticket": [
+                    {"chat_id": "100", "message_id": 10},
+                    {"chat_id": "200", "message_id": 20},
+                ],
+                "cliente_status_msg": {"chat_id": "100", "message_id": 30},
+                "notificacoes": [
+                    {"chat_id": "300", "message_id": 40},
+                    {"chat_id": "100", "message_id": 10},
+                ],
+                "manter": "valor",
+            },
+        )
+        delete_message = AsyncMock()
+        context = SimpleNamespace(bot=SimpleNamespace(delete_message=delete_message))
+
+        atualizado = asyncio.run(
+            bot.apagar_mensagens_ticket(
+                context,
+                ticket,
+                {"chat_id": "200", "message_id": 20},
+                {"chat_id": "400", "message_id": 50},
+            )
+        )
+
+        apagadas = {
+            (str(chamada.kwargs["chat_id"]), chamada.kwargs["message_id"])
+            for chamada in delete_message.await_args_list
+        }
+        self.assertEqual(
+            {("100", 10), ("200", 20), ("100", 30), ("300", 40), ("400", 50)},
+            apagadas,
+        )
+        self.assertEqual("valor", atualizado["dados"]["manter"])
+        self.assertNotIn("mensagens_ticket", atualizado["dados"])
+        self.assertNotIn("cliente_status_msg", atualizado["dados"])
+        self.assertNotIn("notificacoes", atualizado["dados"])
+
+    def test_relay_registra_mensagem_original_e_encaminhada(self):
+        ticket, _ = self.db.criar_ticket("100", "Cliente", "@cliente")
+        self.db.assumir_ticket(ticket["id"], "200", "Helper")
+        mensagem = SimpleNamespace(
+            chat_id=100,
+            message_id=10,
+            text="Preciso de ajuda",
+            reply_text=AsyncMock(),
+        )
+        update = SimpleNamespace(
+            effective_message=mensagem,
+            effective_user=SimpleNamespace(id=100),
+            effective_chat=SimpleNamespace(id=100),
+        )
+        enviada = SimpleNamespace(chat_id=200, message_id=20)
+        context = SimpleNamespace(
+            bot=SimpleNamespace(send_message=AsyncMock(return_value=enviada))
+        )
+
+        processada = asyncio.run(bot.processar_mensagem_ticket(update, context))
+
+        self.assertTrue(processada)
+        atualizado = self.db.obter_ticket(ticket["id"])
+        self.assertEqual(
+            [
+                {"chat_id": "100", "message_id": 10},
+                {"chat_id": "200", "message_id": 20},
+            ],
+            atualizado["dados"]["mensagens_ticket"],
+        )
+
+    def test_fechamento_dispara_limpeza_do_ticket(self):
+        ticket, _ = self.db.criar_ticket("100", "Cliente", "@cliente")
+        ticket, _ = self.db.assumir_ticket(ticket["id"], "200", "Helper")
+        ticket = self.db.atualizar_dados_ticket(
+            ticket["id"],
+            {
+                "mensagens_ticket": [
+                    {"chat_id": "100", "message_id": 10},
+                    {"chat_id": "200", "message_id": 20},
+                ]
+            },
+        )
+        query = SimpleNamespace(
+            answer=AsyncMock(),
+            message=SimpleNamespace(chat_id=200, message_id=20),
+        )
+        update = SimpleNamespace(
+            callback_query=query,
+            effective_user=SimpleNamespace(id=200, full_name="Helper"),
+            effective_chat=SimpleNamespace(id=200),
+        )
+        delete_message = AsyncMock()
+        context = SimpleNamespace(
+            bot=SimpleNamespace(
+                delete_message=delete_message,
+                send_message=AsyncMock(),
+            )
+        )
+        enviar_menu_original = bot.enviar_menu_suporte_para_chat
+        bot.enviar_menu_suporte_para_chat = AsyncMock()
+        try:
+            asyncio.run(
+                bot.fechar_ticket_suporte(update, context, str(ticket["id"]))
+            )
+        finally:
+            bot.enviar_menu_suporte_para_chat = enviar_menu_original
+
+        fechado = self.db.obter_ticket(ticket["id"])
+        self.assertEqual("fechado", fechado["status"])
+        self.assertNotIn("mensagens_ticket", fechado["dados"])
+        apagadas = {
+            (str(chamada.kwargs["chat_id"]), chamada.kwargs["message_id"])
+            for chamada in delete_message.await_args_list
+        }
+        self.assertEqual({("100", 10), ("200", 20)}, apagadas)
+        query.answer.assert_awaited_once_with("Ticket fechado.")
+
+
+@unittest.skipIf(bot is None, f"Dependências de runtime não instaladas: {BOT_IMPORT_ERROR}")
 class TesterWeeklyGoalTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
