@@ -66,9 +66,13 @@ import bot
 
 
 class CalculoPrecoDinamicoTests(unittest.TestCase):
-    def test_exemplos_definidos_para_precificacao(self):
-        self.assertEqual("3,20", bot.calcular_preco_dinamico("1.88")["valor"])
-        self.assertEqual("30,00", bot.calcular_preco_dinamico("18.80")["valor"])
+    def test_aplica_multiplicador_fixo_seguranca_e_arredondamento(self):
+        self.assertEqual("4,00", bot.calcular_preco_dinamico("1.88")["valor"])
+        self.assertEqual("39,30", bot.calcular_preco_dinamico("18.80")["valor"])
+
+    def test_arredondamento_e_sempre_para_cima_em_dez_centavos(self):
+        # 1,00 x 1,90 x 1,10 = 2,09; o valor cobrado deve subir para 2,10.
+        self.assertEqual("2,10", bot.calcular_preco_dinamico("1.00")["valor"])
 
     def test_valor_minimo_cobrado_e_099(self):
         calculo = bot.calcular_preco_dinamico("0")
@@ -128,10 +132,13 @@ class CalculoPrecoDinamicoTests(unittest.TestCase):
 
         self.assertEqual("1.000", pedido["quantidade"])
         self.assertEqual(1000, pedido["quantidade_api"])
-        self.assertEqual("3,20", pedido["valor"])
+        self.assertEqual("4,00", pedido["valor"])
         self.assertTrue(pedido["preco_dinamico"])
         self.assertEqual("plataforma_api", pedido["fonte_preco"])
         self.assertEqual("123", pedido["plataforma_service_id"])
+        self.assertEqual("multiplicador_fixo", pedido["precificacao_dinamica"]["regra"])
+        self.assertEqual("1.90", pedido["precificacao_dinamica"]["multiplicador"])
+        self.assertEqual("10", pedido["precificacao_dinamica"]["seguranca_percentual"])
         self.assertEqual([True], consulta_forcada)
 
     def test_consulta_forcada_ignora_cache_e_busca_tarifa_da_plataforma(self):
@@ -194,7 +201,7 @@ class CalculoPrecoDinamicoTests(unittest.TestCase):
             bot.CHECK_ESTOQUE_ANTES_PAGAMENTO = verificar_original
 
         self.assertTrue(ok)
-        self.assertEqual("30,00", pedido["valor"])
+        self.assertEqual("39,30", pedido["valor"])
 
 
 if __name__ == "__main__":
