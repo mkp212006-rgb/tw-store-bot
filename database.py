@@ -40,6 +40,35 @@ class BotDatabase:
                     atualizado_em TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS carteiras_saldo (
+                    user_id TEXT PRIMARY KEY,
+                    saldo_centavos INTEGER NOT NULL DEFAULT 0 CHECK(saldo_centavos >= 0),
+                    atualizado_em TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS recargas_saldo (
+                    recarga_id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    valor_centavos INTEGER NOT NULL CHECK(valor_centavos BETWEEN 500 AND 30000),
+                    status TEXT NOT NULL,
+                    mp_payment_id TEXT UNIQUE,
+                    dados_json TEXT NOT NULL,
+                    criado_em TEXT NOT NULL,
+                    atualizado_em TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS movimentacoes_saldo (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    tipo TEXT NOT NULL,
+                    valor_centavos INTEGER NOT NULL,
+                    saldo_apos_centavos INTEGER NOT NULL CHECK(saldo_apos_centavos >= 0),
+                    referencia TEXT,
+                    idempotency_key TEXT NOT NULL UNIQUE,
+                    dados_json TEXT NOT NULL DEFAULT '{}',
+                    criado_em TEXT NOT NULL
+                );
+
                 CREATE TABLE IF NOT EXISTS pedidos_pendentes (
                     pedido_id TEXT PRIMARY KEY,
                     user_id TEXT,
@@ -118,6 +147,9 @@ class BotDatabase:
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_usuarios_status ON usuarios(status);
+                CREATE INDEX IF NOT EXISTS idx_recargas_saldo_user ON recargas_saldo(user_id, criado_em);
+                CREATE INDEX IF NOT EXISTS idx_recargas_saldo_status ON recargas_saldo(status, atualizado_em);
+                CREATE INDEX IF NOT EXISTS idx_movimentacoes_saldo_user ON movimentacoes_saldo(user_id, criado_em);
                 CREATE INDEX IF NOT EXISTS idx_pedidos_pendentes_status ON pedidos_pendentes(status);
                 CREATE INDEX IF NOT EXISTS idx_pedidos_historico_user ON pedidos_historico(user_id);
                 CREATE INDEX IF NOT EXISTS idx_webhook_status ON webhook_events(status, attempts, atualizado_em);
@@ -200,6 +232,254 @@ class BotDatabase:
                 self._conn.execute(sql, params)
         else:
             self._conn.execute(sql, params)
+
+    def obter_saldo_centavos(self, user_id) -> int:
+        user_id = str(user_id or "").strip()
+        if not user_id:
+            return 0
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT saldo_centavos FROM carteiras_saldo WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+        return int(row["saldo_centavos"] if row else 0)
+
+    def salvar_recarga_saldo(self, recarga_id, recarga: dict, commit: bool = True):
+        recarga_id = str(recarga_id or (recarga or {}).get("recarga_id") or "").strip()
+        if not recarga_id:
+            raise ValueError("recarga_id é obrigatório")
+
+        recarga = dict(recarga or {})
+        recarga["recarga_id"] = recarga_id
+        agora = datetime.now().isoformat(timespec="seconds")
+        criado_em = str(recarga.get("criado_em") or agora)
+        atualizado_em = str(recarga.get("atualizado_em") or agora)
+        payment_id = str(recarga.get("mp_payment_id") or "").strip() or None
+        sql = """
+            INSERT INTO recargas_saldo
+            (recarga_id, user_id, valor_centavos, status, mp_payment_id, dados_json, criado_em, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(recarga_id) DO UPDATE SET
+                user_id=excluded.user_id,
+                valor_centavos=excluded.valor_centavos,
+                status=excluded.status,
+                mp_payment_id=excluded.mp_payment_id,
+                dados_json=excluded.dados_json,
+                atualizado_em=excluded.atualizado_em
+        """
+        params = (
+            recarga_id,
+            str(recarga.get("user_id") or ""),
+            int(recarga.get("valor_centavos") or 0),
+            str(recarga.get("status") or "aguardando_pagamento"),
+            payment_id,
+            self._dump(recarga),
+            criado_em,
+            atualizado_em,
+        )
+        if commit:
+            with self._lock, self._conn:
+                self._conn.execute(sql, params)
+        else:
+            self._conn.execute(sql, params)
+
+    def obter_recarga_saldo(self, recarga_id) -> dict | None:
+        recarga_id = str(recarga_id or "").strip()
+        if not recarga_id:
+            return None
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT dados_json FROM recargas_saldo WHERE recarga_id = ?",
+                (recarga_id,),
+            ).fetchone()
+        return self._load(row["dados_json"]) if row else None
+
+    def obter_recarga_por_pagamento(
+        self,
+        payment_id: str | None = None,
+        external_reference: str | None = None,
+    ) -> dict | None:
+        external_reference = str(external_reference or "").strip()
+        payment_id = str(payment_id or "").strip()
+        with self._lock:
+            row = None
+            if external_reference:
+                row = self._conn.execute(
+                    "SELECT dados_json FROM recargas_saldo WHERE recarga_id = ?",
+                    (external_reference,),
+                ).fetchone()
+            if row is None and payment_id:
+                row = self._conn.execute(
+                    "SELECT dados_json FROM recargas_saldo WHERE mp_payment_id = ?",
+                    (payment_id,),
+                ).fetchone()
+        return self._load(row["dados_json"]) if row else None
+
+    def creditar_recarga_saldo(
+        self,
+        recarga_id,
+        payment_id,
+        dados_pagamento: dict | None = None,
+    ) -> dict:
+        """Credita uma recarga uma única vez e atualiza a carteira na mesma transação."""
+        recarga_id = str(recarga_id or "").strip()
+        payment_id = str(payment_id or "").strip()
+        if not recarga_id or not payment_id:
+            raise ValueError("recarga_id e payment_id são obrigatórios")
+
+        idempotency_key = f"recarga:{payment_id}"
+        with self._lock, self._conn:
+            recarga_row = self._conn.execute(
+                "SELECT dados_json FROM recargas_saldo WHERE recarga_id = ?",
+                (recarga_id,),
+            ).fetchone()
+            if not recarga_row:
+                raise ValueError("recarga não encontrada")
+
+            recarga = self._load(recarga_row["dados_json"])
+            user_id = str(recarga.get("user_id") or "").strip()
+            valor_centavos = int(recarga.get("valor_centavos") or 0)
+            if not user_id or not 500 <= valor_centavos <= 30000:
+                raise ValueError("dados da recarga são inválidos")
+
+            existente = self._conn.execute(
+                "SELECT saldo_apos_centavos FROM movimentacoes_saldo WHERE idempotency_key = ?",
+                (idempotency_key,),
+            ).fetchone()
+            if existente:
+                saldo_atual = self.obter_saldo_centavos(user_id)
+                return {
+                    "creditada": False,
+                    "ja_processada": True,
+                    "saldo_centavos": saldo_atual,
+                    "valor_centavos": valor_centavos,
+                }
+
+            agora = datetime.now().isoformat(timespec="seconds")
+            self._conn.execute(
+                """
+                INSERT INTO carteiras_saldo (user_id, saldo_centavos, atualizado_em)
+                VALUES (?, 0, ?)
+                ON CONFLICT(user_id) DO NOTHING
+                """,
+                (user_id, agora),
+            )
+            saldo_antes = self.obter_saldo_centavos(user_id)
+            saldo_apos = saldo_antes + valor_centavos
+            self._conn.execute(
+                "UPDATE carteiras_saldo SET saldo_centavos = ?, atualizado_em = ? WHERE user_id = ?",
+                (saldo_apos, agora, user_id),
+            )
+            self._conn.execute(
+                """
+                INSERT INTO movimentacoes_saldo
+                (user_id, tipo, valor_centavos, saldo_apos_centavos, referencia, idempotency_key, dados_json, criado_em)
+                VALUES (?, 'recarga', ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user_id,
+                    valor_centavos,
+                    saldo_apos,
+                    recarga_id,
+                    idempotency_key,
+                    self._dump(dados_pagamento or {}),
+                    agora,
+                ),
+            )
+
+            recarga["status"] = "aprovada"
+            recarga["mp_payment_id"] = payment_id
+            recarga["creditada_em"] = agora
+            recarga["saldo_antes_centavos"] = saldo_antes
+            recarga["saldo_apos_centavos"] = saldo_apos
+            recarga["atualizado_em"] = agora
+            self.salvar_recarga_saldo(recarga_id, recarga, commit=False)
+
+        return {
+            "creditada": True,
+            "ja_processada": False,
+            "saldo_centavos": saldo_apos,
+            "valor_centavos": valor_centavos,
+        }
+
+    def debitar_saldo_pedido(
+        self,
+        user_id,
+        pedido_id,
+        valor_centavos: int,
+        pedido: dict,
+    ) -> dict:
+        """Debita um pedido com idempotência e persiste o pedido atomicamente."""
+        user_id = str(user_id or "").strip()
+        pedido_id = str(pedido_id or "").strip()
+        valor_centavos = int(valor_centavos or 0)
+        if not user_id or not pedido_id or valor_centavos <= 0:
+            raise ValueError("user_id, pedido_id e valor são obrigatórios")
+
+        idempotency_key = f"pedido:{pedido_id}"
+        with self._lock, self._conn:
+            existente = self._conn.execute(
+                "SELECT saldo_apos_centavos FROM movimentacoes_saldo WHERE idempotency_key = ?",
+                (idempotency_key,),
+            ).fetchone()
+            if existente:
+                return {
+                    "debitado": False,
+                    "ja_processado": True,
+                    "saldo_centavos": int(existente["saldo_apos_centavos"]),
+                    "valor_centavos": valor_centavos,
+                }
+
+            agora = datetime.now().isoformat(timespec="seconds")
+            self._conn.execute(
+                """
+                INSERT INTO carteiras_saldo (user_id, saldo_centavos, atualizado_em)
+                VALUES (?, 0, ?)
+                ON CONFLICT(user_id) DO NOTHING
+                """,
+                (user_id, agora),
+            )
+            saldo_antes = self.obter_saldo_centavos(user_id)
+            if saldo_antes < valor_centavos:
+                return {
+                    "debitado": False,
+                    "ja_processado": False,
+                    "saldo_insuficiente": True,
+                    "saldo_centavos": saldo_antes,
+                    "valor_centavos": valor_centavos,
+                }
+
+            saldo_apos = saldo_antes - valor_centavos
+            self._conn.execute(
+                "UPDATE carteiras_saldo SET saldo_centavos = ?, atualizado_em = ? WHERE user_id = ?",
+                (saldo_apos, agora, user_id),
+            )
+            self._conn.execute(
+                """
+                INSERT INTO movimentacoes_saldo
+                (user_id, tipo, valor_centavos, saldo_apos_centavos, referencia, idempotency_key, dados_json, criado_em)
+                VALUES (?, 'pedido', ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user_id,
+                    -valor_centavos,
+                    saldo_apos,
+                    pedido_id,
+                    idempotency_key,
+                    self._dump(pedido or {}),
+                    agora,
+                ),
+            )
+            self._salvar_pedido("pedidos_pendentes", pedido_id, pedido, commit=False)
+
+        return {
+            "debitado": True,
+            "ja_processado": False,
+            "saldo_insuficiente": False,
+            "saldo_antes_centavos": saldo_antes,
+            "saldo_centavos": saldo_apos,
+            "valor_centavos": valor_centavos,
+        }
 
     def carregar_pedidos_pendentes(self) -> dict:
         return self._load_mapping("pedidos_pendentes", "pedido_id")
@@ -391,6 +671,8 @@ class BotDatabase:
                 ON CONFLICT(payment_id) DO UPDATE SET
                     payload_json=excluded.payload_json,
                     status=CASE WHEN webhook_events.status = 'processado' THEN webhook_events.status ELSE 'pendente' END,
+                    attempts=CASE WHEN webhook_events.status = 'processado' THEN webhook_events.attempts ELSE 0 END,
+                    last_error=CASE WHEN webhook_events.status = 'processado' THEN webhook_events.last_error ELSE NULL END,
                     atualizado_em=excluded.atualizado_em
                 """,
                 (payment_id, origem, payload_json, agora, agora),

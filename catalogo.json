@@ -1,13 +1,13 @@
 {
   "loja": "TW STORE",
   "mensagens": {
-    "inicio": "🚀 Bem-vindo(a) à TW STORE\n\nSua central de serviços digitais com atendimento organizado, processo simples e suporte dedicado do início ao fim.\n\nAqui você pode escolher o serviço, informar os dados do pedido, realizar o pagamento e acompanhar tudo pelo próprio bot com praticidade.",
+    "inicio": "🚀 Bem-vindo(a) à TW STORE\n\nSua central de serviços digitais com atendimento organizado, processo simples e suporte dedicado do início ao fim.\n\nAqui você pode adicionar saldo à sua carteira, escolher o serviço, informar os dados do pedido e acompanhar tudo pelo próprio bot com praticidade.",
     "catalogo": "🛍️ *Catálogo TW STORE*\n\nSelecione a categoria desejada para ver os detalhes.\nㅤ",
     "instagram": "📸 *Instagram*\n\nEscolha abaixo o tipo de serviço que deseja contratar.\n\nVocê pode selecionar pacotes para perfil ou publicação, com pedido organizado e conferência antes da finalização.\n\nToque em uma opção para continuar:",
-    "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nEnvie o serviço desejado e o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de pagar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
+    "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nAdicione saldo à carteira, escolha o serviço e envie o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de confirmar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
     "atendimento": "🎟️ *Suporte por Ticket — TW STORE*\n\nPara falar com nossa equipe, solicite um ticket em nossa plataforma de suporte.\n\nClique no botão abaixo para entrar e abrir seu atendimento.\n\nAo criar o ticket, informe:\n• Motivo do suporte\n• Número do pedido, se tiver\n• Prints ou detalhes do problema\n\n⏳ Nossa equipe responderá assim que possível.",
-    "pagamento": "💳 *Finalização do Pedido*\n\nEstou conferindo as informações enviadas.\n\nEm seguida, você receberá a tela de pagamento com o valor exato, o resumo do pedido e o botão para copiar o Pix.",
-    "pedido_confirmado": "✅ *Etapa 3 de 3 — Pedido aprovado!*\n\n🎉 *Pagamento confirmado com sucesso!*\n\n📌 *Status do pedido*\n• Pagamento aprovado\n• Pedido recebido pela equipe\n• Aguardando ativação/envio dos dados\n\n🛠️ *Próximo passo*\nNossa equipe vai processar seu acesso e enviar as informações assim que estiver tudo pronto.\n\n🎫 Precisa de ajuda? Fale com o suporte.",
+    "pagamento": "💳 *Finalização pelo saldo*\n\nEstou conferindo as informações enviadas e o saldo disponível na sua carteira.\n\nSe houver saldo suficiente, o valor será descontado e o pedido continuará automaticamente.",
+    "pedido_confirmado": "✅ *Etapa 3 de 3 — Pedido aprovado!*\n\n🎉 *Pedido confirmado com o saldo da sua carteira!*\n\n📌 *Status do pedido*\n• Saldo utilizado\n• Pedido recebido pela equipe\n• Aguardando ativação/envio dos dados\n\n🛠️ *Próximo passo*\nNossa equipe vai processar seu acesso e enviar as informações assim que estiver tudo pronto.\n\n🎫 Precisa de ajuda? Fale com o suporte.",
     "prazos_suporte": "⏰ *Prazos e Suporte*\n\nCada serviço possui um prazo diferente de início e conclusão.\n\nCaso tenha dúvidas, envie 1 para que possa ser transferido para alguém da equipe da TW Store. \nㅤ",
     "solicitar_link": "🛒 Etapa 1 de 3 — Produto escolhido\n\n🔗 Agora envie o link ou @\n\nEnvie abaixo o link ou @ correto para continuar o pedido.\n\n⚠️ O perfil ou conteúdo precisa estar público até a conclusão do serviço.",
     "confirmar_dados": "Confira os dados do pedido abaixo. Se estiver tudo certo, toque em Confirmar pedido.",
@@ -1178,7 +1178,7 @@
     },
     "assinaturas": {
       "titulo": "🎫 Assinaturas",
-      "mensagem": "🎫 *Assinaturas*\n\nEscolha abaixo o serviço desejado.\n\nDepois da seleção, envie o e-mail do cliente, confira os dados e siga para o pagamento.",
+      "mensagem": "🎫 *Assinaturas*\n\nEscolha abaixo o serviço desejado.\n\nDepois da seleção, envie o e-mail do cliente, confira os dados e confirme o uso do saldo da carteira.",
       "servicos": {
         "netflix": {
           "nome": "Netflix",
@@ -1209,7 +1209,7 @@
     },
     "iptv": {
       "titulo": "🎞️ IPTV XCIPTV",
-      "mensagem": "🎞️ *IPTV XCIPTV*\n\n📺 Canais, filmes e séries em um só lugar, com acesso pelo aplicativo *XCIPTV*.\n\n📦 *Plano disponível*\n• 1 mês — *R$ 15,00*\n\n🛒 O pedido será feito em 3 etapas:\n1️⃣ Produto escolhido\n2️⃣ Pagamento\n3️⃣ Pedido aprovado\n\n👇 Toque no plano abaixo para continuar.",
+      "mensagem": "🎞️ *IPTV XCIPTV*\n\n📺 Canais, filmes e séries em um só lugar, com acesso pelo aplicativo *XCIPTV*.\n\n📦 *Plano disponível*\n• 1 mês — *R$ 15,00*\n\n🛒 O pedido será feito em 3 etapas:\n1️⃣ Produto escolhido\n2️⃣ Uso do saldo da carteira\n3️⃣ Pedido aprovado\n\n👇 Toque no plano abaixo para continuar.",
       "servicos": {
         "1mes": {
           "nome": "1 mês",
@@ -1228,7 +1228,7 @@
     },
     "internet_ilimitada": {
       "titulo": "🛜 Internet Ilimitada",
-      "mensagem": "🛜 *Internet Ilimitada*\n\n📱 *Plano mensal para Android*\n\n✅ Funciona somente nas operadoras: *TIM* e *Vivo*\n✅ Compatível apenas com aparelhos *Android*\n✅ Ativação simples e rápida\n💰 *Valor:* R$ 15,00 por mês\n\n🛒 O pedido será feito em 3 etapas:\n1️⃣ Produto escolhido\n2️⃣ Pagamento\n3️⃣ Pedido aprovado\n\n⚠️ Antes de comprar, confirme se o chip é TIM ou Vivo e se o aparelho é Android.\n\nEscolha o plano abaixo para continuar.",
+      "mensagem": "🛜 *Internet Ilimitada*\n\n📱 *Plano mensal para Android*\n\n✅ Funciona somente nas operadoras: *TIM* e *Vivo*\n✅ Compatível apenas com aparelhos *Android*\n✅ Ativação simples e rápida\n💰 *Valor:* R$ 15,00 por mês\n\n🛒 O pedido será feito em 3 etapas:\n1️⃣ Produto escolhido\n2️⃣ Uso do saldo da carteira\n3️⃣ Pedido aprovado\n\n⚠️ Antes de comprar, confirme se o chip é TIM ou Vivo e se o aparelho é Android.\n\nEscolha o plano abaixo para continuar.",
       "servicos": {
         "1mes": {
           "nome": "1 mês",
@@ -1247,7 +1247,7 @@
     }
   },
   "menus_extras": {
-    "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nEnvie o serviço desejado e o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de pagar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
+    "duvidas": "❓ *Dúvidas Frequentes*\n\n*Como faço um pedido?*\nAdicione saldo à carteira, escolha o serviço e envie o link/@ necessário.\n\n*Quanto tempo demora?*\nO prazo varia conforme o serviço e a demanda do momento.\n\n*Posso tirar dúvidas antes de confirmar?*\nSim. Nossa equipe confirma as informações antes da finalização.",
     "atendimento": "🎟️ *Suporte por Ticket — TW STORE*\n\nPara falar com nossa equipe, solicite um ticket em nossa plataforma de suporte.\n\nAo criar o ticket, informe:\n• Motivo do suporte\n• Número do pedido, se tiver\n• Prints ou detalhes do problema\n\n⏳ Nossa equipe responderá assim que possível.",
     "prazos_suporte": "⏰ *Prazos e Suporte*\n\nCada serviço possui um prazo diferente de início e conclusão.\n\nCaso tenha dúvidas, envie 1 para que possa ser transferido para alguém da equipe da TW Store. \nㅤ"
   }

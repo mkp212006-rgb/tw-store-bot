@@ -25,6 +25,7 @@ from email.message import EmailMessage
 from email.utils import formataddr
 from html import escape as html_escape
 from datetime import datetime, timedelta, time
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -173,8 +174,8 @@ try:
 except ValueError:
     PANEL_API_TIMEOUT = 30
 
-# Trava antes do pagamento: consulta a plataforma antes de gerar Pix.
-# Se estiver sem saldo/sem serviço disponível, o cliente não recebe cobrança.
+# Trava antes do débito da carteira: consulta a plataforma antes de liberar o pedido.
+# Se estiver sem saldo/sem serviço disponível, o saldo do cliente não é alterado.
 CHECK_ESTOQUE_ANTES_PAGAMENTO = os.getenv("CHECK_ESTOQUE_ANTES_PAGAMENTO", "true").strip().lower() not in (
     "0", "false", "nao", "não", "no", "off", "desativado"
 )
@@ -245,6 +246,10 @@ except ValueError:
 if not math.isfinite(META_SEMANAL_TESTER_REAIS) or META_SEMANAL_TESTER_REAIS < 0:
     META_SEMANAL_TESTER_REAIS = 20.0
 META_SEMANAL_TESTER_CENTAVOS = int(round(META_SEMANAL_TESTER_REAIS * 100))
+
+SALDO_MINIMO_RECARGA_CENTAVOS = 500
+SALDO_MAXIMO_RECARGA_CENTAVOS = 30000
+TAXA_RECARGA_PERCENTUAL = 5
 
 
 TZ_BR = ZoneInfo("America/Sao_Paulo")
@@ -3061,6 +3066,52 @@ def centavos_para_moeda(centavos: int) -> str:
     return texto.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
+def saldo_usuario_centavos(user_id) -> int:
+    return DB.obter_saldo_centavos(str(user_id or ""))
+
+
+def parse_valor_recarga_centavos(valor) -> int | None:
+    """Aceita valores como 5, 5,50 ou 5.50 sem arredondamentos ambíguos."""
+    texto = str(valor or "").strip().replace("R$", "").replace("r$", "").strip()
+    texto = re.sub(r"\s+", "", texto)
+    if not re.fullmatch(r"\d+(?:[,.]\d{1,2})?", texto):
+        return None
+    try:
+        decimal = Decimal(texto.replace(",", "."))
+        centavos = int((decimal * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    except (InvalidOperation, ValueError, OverflowError):
+        return None
+    return centavos
+
+
+def calcular_taxa_recarga_centavos(valor_saldo_centavos: int) -> int:
+    valor = Decimal(int(valor_saldo_centavos or 0))
+    percentual = Decimal(TAXA_RECARGA_PERCENTUAL) / Decimal(100)
+    return int((valor * percentual).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def aplicar_taxa_recarga(recarga: dict) -> dict:
+    """Define o saldo creditado, a taxa e o total do Pix sem usar float."""
+    valor_saldo_centavos = int(recarga.get("valor_centavos") or 0)
+    taxa_centavos = calcular_taxa_recarga_centavos(valor_saldo_centavos)
+    valor_pagamento_centavos = valor_saldo_centavos + taxa_centavos
+    recarga.update(
+        {
+            "taxa_percentual": TAXA_RECARGA_PERCENTUAL,
+            "taxa_centavos": taxa_centavos,
+            "valor_pagamento_centavos": valor_pagamento_centavos,
+            "valor_saldo": centavos_para_moeda(valor_saldo_centavos),
+            "taxa": centavos_para_moeda(taxa_centavos),
+            "valor_pagamento": centavos_para_moeda(valor_pagamento_centavos),
+        }
+    )
+    return recarga
+
+
+def gerar_recarga_saldo_id() -> str:
+    return f"RC{agora_br():%Y%m%d%H%M%S}{secrets.token_hex(3).upper()}"
+
+
 def bloco_cliente_relatorio_admin(cliente: dict, posicao: int | None = None) -> str:
     username = f"@{cliente.get('username')}" if cliente.get("username") else "Sem username"
     total_centavos = int(cliente.get("total_centavos", 0))
@@ -3225,7 +3276,7 @@ def bloco_pedido_relatorio_cliente(pedido: dict) -> str:
         f"🗂️ *Catálogo:* {md(pedido.get('catalogo', 'Não informado'))}\n"
         f"💰 *Valor:* R$ {md(centavos_para_moeda(valor_para_centavos(pedido.get('valor', '0'))))}\n"
         f"🌐 *Pedido plataforma:* {md(pedido_plataforma)}\n"
-        f"🗓️ *Pago em:* {md(data_texto)}"
+        f"🗓️ *Realizado em:* {md(data_texto)}"
     )
 
 
@@ -3236,6 +3287,7 @@ def texto_my_profile_cliente(update: Update) -> str:
     username = f"@{user.username}" if user and user.username else "Sem username"
     registro = obter_usuario_registrado(user_id)
     cargo = cargo_usuario_id(user_id, registro)
+    saldo_centavos = saldo_usuario_centavos(user_id)
 
     agora = agora_br()
     inicio = datetime.combine(agora.date(), time.min, tzinfo=TZ_BR)
@@ -3253,8 +3305,9 @@ def texto_my_profile_cliente(update: Update) -> str:
         f"📲 *Telegram:* {md(username)}",
         f"🆔 *Telegram ID:* `{md(user_id)}`",
         f"🪪 *Cargo:* {md(nome_cargo(cargo))}",
+        f"💳 *Saldo disponível:* R$ {md(centavos_para_moeda(saldo_centavos))}",
         f"💰 *Total usado hoje:* R$ {md(centavos_para_moeda(total_centavos))}",
-        f"🧾 *Pedidos pagos hoje:* {len(pedidos)}",
+        f"🧾 *Pedidos realizados hoje:* {len(pedidos)}",
         "🔄 Reinicia todos os dias após 00:00.",
     ]
 
@@ -3275,15 +3328,15 @@ def texto_my_profile_cliente(update: Update) -> str:
         )
 
     if not pedidos:
-        linhas.extend(["", "Você ainda não tem pedidos pagos hoje."])
+        linhas.extend(["", "Você ainda não tem pedidos realizados hoje."])
         return "\n".join(linhas)
 
-    linhas.extend(["", "*Seus pedidos pagos hoje:*"])
+    linhas.extend(["", "*Seus pedidos realizados hoje:*"])
     for pedido in pedidos[:12]:
         linhas.append(bloco_pedido_relatorio_cliente(pedido))
 
     if len(pedidos) > 12:
-        linhas.append(f"\nMostrando 12 de {len(pedidos)} pedidos pagos hoje.")
+        linhas.append(f"\nMostrando 12 de {len(pedidos)} pedidos realizados hoje.")
 
     texto = "\n\n".join(linhas)
     if len(texto) > 3900:
@@ -3612,8 +3665,13 @@ def criar_pagamento_mercado_pago_sync(pedido: dict) -> dict:
     pedido["pedido_id"] = pedido_id
 
     descricao = f"{pedido.get('catalogo', 'Pedido')} - {pedido.get('servico', '')} - {pedido.get('quantidade', '')}".strip()
+    valor_cobranca = (
+        pedido.get("valor_pagamento")
+        if pedido.get("tipo_pagamento") == "recarga_saldo"
+        else pedido.get("valor")
+    )
     payload = {
-        "transaction_amount": valor_pedido_float(pedido.get("valor")),
+        "transaction_amount": valor_pedido_float(valor_cobranca),
         "description": descricao[:250],
         "payment_method_id": "pix",
         "external_reference": pedido_id,
@@ -3729,6 +3787,171 @@ async def garantir_pagamento_mercado_pago(pedido: dict) -> tuple[bool, str]:
     aplicar_pagamento_mercado_pago_no_pedido(pedido, pagamento)
     salvar_pedido_pendente(pedido)
     return True, "Pagamento criado."
+
+
+def preparar_recarga_saldo(update: Update, valor_centavos: int) -> dict:
+    valor_centavos = int(valor_centavos or 0)
+    if not SALDO_MINIMO_RECARGA_CENTAVOS <= valor_centavos <= SALDO_MAXIMO_RECARGA_CENTAVOS:
+        raise ValueError("A recarga deve ficar entre R$ 5,00 e R$ 300,00.")
+    user = update.effective_user
+    recarga_id = gerar_recarga_saldo_id()
+    recarga = {
+        "recarga_id": recarga_id,
+        # O gerador de Pix usa pedido_id como referência externa. Nesta operação,
+        # ele recebe o próprio ID da recarga e nunca entra na tabela de pedidos.
+        "pedido_id": recarga_id,
+        "tipo_pagamento": "recarga_saldo",
+        "catalogo": "Carteira TW Store",
+        "servico": "Adicionar saldo",
+        "quantidade": "1 recarga",
+        "valor": centavos_para_moeda(valor_centavos),
+        "valor_centavos": int(valor_centavos),
+        "status": "criando_pix",
+        "user_id": user.id if user else update.effective_chat.id,
+        "usuario": user.full_name if user else "Cliente",
+        "username": user.username if user else None,
+        "criado_em": agora_br().strftime("%d/%m/%Y %H:%M:%S"),
+    }
+    return aplicar_taxa_recarga(recarga)
+
+
+async def garantir_pix_recarga_saldo(recarga: dict) -> tuple[bool, str]:
+    valor_centavos = int(recarga.get("valor_centavos") or 0)
+    if not SALDO_MINIMO_RECARGA_CENTAVOS <= valor_centavos <= SALDO_MAXIMO_RECARGA_CENTAVOS:
+        return False, "A recarga deve ficar entre R$ 5,00 e R$ 300,00."
+    # Preserva Pix antigos, gerados antes da cobrança da taxa. A taxa só é
+    # calculada quando um novo pagamento será criado.
+    if recarga.get("mp_payment_id") and recarga.get("mp_qr_code"):
+        DB.salvar_recarga_saldo(recarga.get("recarga_id"), recarga)
+        return True, "Pix da recarga já criado."
+
+    aplicar_taxa_recarga(recarga)
+    if not mercado_pago_configurado():
+        return False, "Mercado Pago não configurado para confirmar recargas automaticamente."
+
+    try:
+        pagamento = await asyncio.to_thread(criar_pagamento_mercado_pago_sync, recarga)
+    except Exception as exc:
+        return False, limpar_erro_api(exc)
+
+    aplicar_pagamento_mercado_pago_no_pedido(recarga, pagamento)
+    recarga["recarga_id"] = str(recarga.get("recarga_id") or recarga.get("pedido_id") or "")
+    recarga["tipo_pagamento"] = "recarga_saldo"
+    DB.salvar_recarga_saldo(recarga["recarga_id"], recarga)
+    return True, "Pix da recarga criado."
+
+
+def pagamento_recarga_aprovado_e_valido(recarga: dict, pagamento: dict) -> tuple[bool, str]:
+    if str(pagamento.get("status") or "").lower() != "approved":
+        return False, f"Status ainda não aprovado: {pagamento.get('status')}"
+
+    recarga_id = str(recarga.get("recarga_id") or "")
+    external_reference = str(pagamento.get("external_reference") or "")
+    if external_reference and external_reference != recarga_id:
+        return False, "A referência do pagamento não pertence a esta recarga."
+
+    # Recargas antigas, criadas antes da taxa, não possuem valor_pagamento_centavos.
+    esperado = int(
+        recarga.get("valor_pagamento_centavos")
+        or recarga.get("valor_centavos")
+        or 0
+    )
+    try:
+        recebido = int(
+            (Decimal(str(pagamento.get("transaction_amount") or "0")) * 100).quantize(
+                Decimal("1"),
+                rounding=ROUND_HALF_UP,
+            )
+        )
+    except (InvalidOperation, ValueError, TypeError):
+        recebido = 0
+    if esperado <= 0 or recebido != esperado:
+        return False, f"Valor divergente. Esperado {esperado} centavos, recebido {recebido} centavos."
+
+    payment_id = str(pagamento.get("id") or "").strip()
+    if not payment_id:
+        return False, "O pagamento aprovado não possui ID."
+    return True, "OK"
+
+
+def marcar_pagamento_recarga_processado(payment_id: str, recarga: dict):
+    if not payment_id:
+        return
+    DB.salvar_pagamento_processado(
+        str(payment_id),
+        {
+            "tipo": "recarga_saldo",
+            "recarga_id": recarga.get("recarga_id"),
+            "user_id": recarga.get("user_id"),
+            "valor": recarga.get("valor"),
+            "valor_saldo": recarga.get("valor_saldo") or recarga.get("valor"),
+            "taxa_percentual": recarga.get("taxa_percentual"),
+            "taxa": recarga.get("taxa"),
+            "valor_pagamento": recarga.get("valor_pagamento") or recarga.get("valor"),
+            "processado_em": agora_br().strftime("%d/%m/%Y %H:%M:%S"),
+        },
+    )
+
+
+def processar_recarga_aprovada_sync(
+    recarga: dict,
+    pagamento: dict,
+    origem: str = "webhook",
+) -> bool:
+    if not recarga:
+        return False
+
+    payment_id = str(pagamento.get("id") or recarga.get("mp_payment_id") or "").strip()
+    recarga_id = str(recarga.get("recarga_id") or "").strip()
+    if recarga.get("status") == "aprovada":
+        if payment_id:
+            marcar_pagamento_recarga_processado(payment_id, recarga)
+        return True
+    if not payment_id or not recarga_id:
+        return False
+    if not iniciar_processamento_pagamento(payment_id):
+        recarga_atual = DB.obter_recarga_saldo(recarga_id)
+        return bool(recarga_atual and recarga_atual.get("status") == "aprovada")
+
+    try:
+        valido, motivo = pagamento_recarga_aprovado_e_valido(recarga, pagamento)
+        if not valido:
+            logging.warning("Recarga %s não creditada: %s", recarga_id, motivo)
+            return False
+
+        resultado = DB.creditar_recarga_saldo(
+            recarga_id,
+            payment_id,
+            {
+                "payment_id": payment_id,
+                "status": pagamento.get("status"),
+                "external_reference": pagamento.get("external_reference"),
+                "transaction_amount": pagamento.get("transaction_amount"),
+                "origem": origem,
+            },
+        )
+        recarga_atual = DB.obter_recarga_saldo(recarga_id) or recarga
+        marcar_pagamento_recarga_processado(payment_id, recarga_atual)
+
+        if resultado.get("creditada"):
+            saldo_centavos = int(resultado.get("saldo_centavos") or 0)
+            if origem != "verificacao_cliente":
+                enviar_telegram_sync(
+                    recarga_atual.get("user_id"),
+                    texto_confirmacao_recarga(recarga_atual, saldo_centavos)
+                    + "\n\nSeu saldo já pode ser usado nos pedidos.",
+                    reply_markup={
+                        "inline_keyboard": [
+                            [{"text": "🛒 Continuar pedido", "callback_data": "saldo:retomar_pedido"}],
+                            [{"text": "💳 Consultar saldo", "callback_data": "saldo:consultar"}],
+                            [{"text": "🏠 Menu inicial", "callback_data": "voltar:inicio"}],
+                        ]
+                    },
+                )
+            logging.info("Recarga %s creditada via %s.", recarga_id, origem)
+        return True
+    finally:
+        finalizar_processamento_pagamento(payment_id)
 
 
 def obter_pedido_por_pagamento(payment_id: str | None = None, external_reference: str | None = None) -> dict | None:
@@ -3988,6 +4211,35 @@ def pedido_pago_confirmado_local(pedido: dict) -> bool:
     )
 
 
+def recuperar_pedido_debitado_no_startup(pedido: dict):
+    """Avisa equipe e cliente quando um débito foi salvo antes de uma queda."""
+    if str(pedido.get("forma_pagamento") or "") != "saldo":
+        return
+    try:
+        total_semanal = registrar_pedido_semanal(pedido)
+        enviar_relatorio_admin_documento_sync(
+            pedido,
+            total_semanal,
+            titulo="PEDIDO COM SALDO RECUPERADO APÓS REINÍCIO — TW STORE",
+        )
+        enviar_telegram_sync(
+            pedido.get("user_id"),
+            texto_final_pedido(pedido),
+            reply_markup={
+                "inline_keyboard": [
+                    [{"text": "🔎 Consultar Pedido", "callback_data": "pedido:consultar"}],
+                    [{"text": "🏠 Menu inicial", "callback_data": "voltar:inicio"}],
+                ]
+            },
+        )
+    except Exception as exc:
+        logging.exception(
+            "Falha ao recuperar pedido debitado %s após reinício: %s",
+            pedido.get("pedido_id"),
+            exc,
+        )
+
+
 def limpar_persistencia_transiente_no_startup():
     """Remove user_data antigo para botões de pagamento velhos não reprocessarem pedidos."""
     if not LIMPAR_PEDIDOS_PENDENTES_AO_INICIAR:
@@ -4054,6 +4306,7 @@ def limpar_pedidos_pendentes_salvos_no_startup():
             if payment_id:
                 marcar_pagamento_processado(payment_id, pedido)
             remover_pedido_pendente(pedido_id)
+            recuperar_pedido_debitado_no_startup(pedido)
             continue
 
         if status_local in STATUS_PENDENTES_LIMPEZA_STARTUP or not status_local:
@@ -4196,6 +4449,27 @@ def blocos_relatorio_admin(pedido: dict, total_semanal_cliente: str, titulo: str
     mp_id = texto_relatorio_valor(pedido.get("mp_payment_id"), "Não informado")
     origem = texto_relatorio_valor(pedido.get("processado_por"), "Não informado")
     destino_label = "E-mail" if catalogo_exige_email(pedido) else "Link/@"
+    por_saldo = pedido.get("forma_pagamento") == "saldo"
+    if por_saldo:
+        titulo_financeiro = "SALDO DA CARTEIRA"
+        linhas_financeiras = [
+            ("Valor descontado", valor_relatorio_reais(pedido.get("valor"))),
+            ("Saldo antes", f"R$ {centavos_para_moeda(int(pedido.get('saldo_antes_centavos') or 0))}"),
+            ("Saldo restante", f"R$ {centavos_para_moeda(int(pedido.get('saldo_apos_centavos') or 0))}"),
+            ("Total do cliente na semana", valor_relatorio_reais(total_semanal_cliente)),
+            ("Confirmado por", texto_relatorio_valor(pedido.get("aprovado_por"), "Saldo da carteira")),
+            ("Data", data_relatorio),
+        ]
+    else:
+        titulo_financeiro = "PAGAMENTO"
+        linhas_financeiras = [
+            ("Valor aprovado", valor_relatorio_reais(pedido.get("valor"))),
+            ("Total do cliente na semana", valor_relatorio_reais(total_semanal_cliente)),
+            ("Mercado Pago ID", mp_id),
+            ("Aprovado por", texto_relatorio_valor(pedido.get("aprovado_por"), "Mercado Pago")),
+            ("Processamento", origem),
+            ("Data", data_relatorio),
+        ]
 
     blocos = [
         (
@@ -4208,17 +4482,7 @@ def blocos_relatorio_admin(pedido: dict, total_semanal_cliente: str, titulo: str
                 (destino_label, texto_relatorio_valor(pedido.get("link"))),
             ],
         ),
-        (
-            "PAGAMENTO",
-            [
-                ("Valor aprovado", valor_relatorio_reais(pedido.get("valor"))),
-                ("Total do cliente na semana", valor_relatorio_reais(total_semanal_cliente)),
-                ("Mercado Pago ID", mp_id),
-                ("Aprovado por", texto_relatorio_valor(pedido.get("aprovado_por"), "Mercado Pago")),
-                ("Processamento", origem),
-                ("Data", data_relatorio),
-            ],
-        ),
+        (titulo_financeiro, linhas_financeiras),
         (
             "CLIENTE",
             [
@@ -4236,6 +4500,13 @@ def montar_relatorio_admin_texto(pedido: dict, total_semanal_cliente: str, titul
     username = username_relatorio(pedido)
     destino_label = "E-mail" if catalogo_exige_email(pedido) else "Link/@"
     destino_emoji = "📧" if catalogo_exige_email(pedido) else "🔗"
+    if pedido.get("forma_pagamento") == "saldo":
+        linha_financeira = (
+            "💳 *Forma:* Saldo da carteira\n"
+            f"💰 *Saldo restante:* R$ {md(centavos_para_moeda(int(pedido.get('saldo_apos_centavos') or 0)))}\n"
+        )
+    else:
+        linha_financeira = f"💳 *Mercado Pago ID:* `{md(pedido.get('mp_payment_id', 'Não informado'))}`\n"
 
     bloco_api = ""
     if pedido.get("catalogo") in CATALOGOS_COM_ENVIO_API:
@@ -4259,7 +4530,7 @@ def montar_relatorio_admin_texto(pedido: dict, total_semanal_cliente: str, titul
     return (
         f"📥 *{md(titulo)}*\n\n"
         f"🆔 *Pedido:* `{md(pedido.get('pedido_id', ''))}`\n"
-        f"💳 *Mercado Pago ID:* `{md(pedido.get('mp_payment_id', 'Não informado'))}`\n"
+        f"{linha_financeira}"
         f"🗂️ *Catálogo:* {md(pedido.get('catalogo', ''))}\n"
         f"📌 *Serviço:* {md(pedido.get('servico', ''))}\n"
         f"🔢 *Quantidade:* {md(pedido.get('quantidade', ''))}\n"
@@ -4846,7 +5117,7 @@ def processar_pagamento_aprovado_sync(pedido: dict, pagamento: dict, origem: str
 
 
 def processar_notificacao_mercado_pago_sync(payment_id: str, origem: str = "webhook") -> bool:
-    """Consulta o Mercado Pago e processa o pedido fora da resposta HTTP do webhook."""
+    """Consulta o Mercado Pago e processa recargas ou pedidos legados."""
     try:
         pagamento = consultar_pagamento_mercado_pago_sync(payment_id)
         if str(pagamento.get("status")) != "approved":
@@ -4854,6 +5125,10 @@ def processar_notificacao_mercado_pago_sync(payment_id: str, origem: str = "webh
             return False
 
         external_reference = pagamento.get("external_reference")
+        recarga = DB.obter_recarga_por_pagamento(payment_id, external_reference)
+        if recarga:
+            return processar_recarga_aprovada_sync(recarga, pagamento, origem=origem)
+
         pedido = obter_pedido_por_pagamento(payment_id, external_reference)
         if not pedido:
             pedido_historico = obter_pedido_historico_por_pagamento(payment_id, external_reference)
@@ -5349,7 +5624,7 @@ def estimar_custo_pedido_plataforma_sync(pedido: dict) -> dict:
 
 def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
     if not CHECK_ESTOQUE_ANTES_PAGAMENTO:
-        return True, "Verificação antes do pagamento desativada."
+        return True, "Verificação de estoque desativada."
 
     if pedido.get("catalogo") not in CATALOGOS_COM_ENVIO_API:
         return True, "Catálogo sem envio automático para plataforma."
@@ -5367,14 +5642,14 @@ def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
         necessario = float(custo) + float(MARGEM_SALDO_PLATAFORMA)
         if saldo + 0.000001 < necessario:
             detalhe = (
-                "Saldo insuficiente na plataforma antes de gerar o Pix. "
+                "Saldo insuficiente na plataforma antes de liberar o pedido. "
                 f"Saldo: {saldo:.6f} {moeda}; necessário estimado: {necessario:.6f} {moeda}; "
                 f"service_id: {service_id}; quantidade: {quantidade}."
             )
             return False, detalhe
 
         detalhe = (
-            "Saldo confirmado antes do pagamento. "
+            "Saldo da plataforma confirmado antes do pedido. "
             f"Saldo: {saldo:.6f} {moeda}; custo estimado: {float(custo):.6f} {moeda}; "
             f"service_id: {service_id}; quantidade: {quantidade}."
         )
@@ -5382,13 +5657,13 @@ def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
 
     if saldo <= float(MARGEM_SALDO_PLATAFORMA):
         detalhe = (
-            "Saldo zerado/insuficiente na plataforma antes de gerar o Pix. "
+            "Saldo zerado/insuficiente na plataforma antes de liberar o pedido. "
             f"Saldo: {saldo:.6f} {moeda}; service_id: {service_id}; quantidade: {quantidade}."
         )
         return False, detalhe
 
     detalhe = (
-        "Saldo positivo confirmado antes do pagamento, mas não foi possível estimar o custo do serviço. "
+        "Saldo positivo confirmado antes do pedido, mas não foi possível estimar o custo do serviço. "
         f"Saldo: {saldo:.6f} {moeda}; service_id: {service_id}; quantidade: {quantidade}."
     )
     return True, detalhe
@@ -5399,15 +5674,15 @@ def mensagem_cliente_sem_reposicao() -> str:
         "⚠️ *Serviço temporariamente sem reposição de estoque.*\n\n"
         "No momento não consigo liberar esse pedido automaticamente. "
         "Tente novamente mais tarde ou fale com o atendimento.\n\n"
-        "✅ Nenhum Pix foi gerado e você não precisa pagar nada agora."
+        "✅ Nenhum valor foi descontado do seu saldo."
     )
 
 
 def texto_admin_bloqueio_sem_reposicao(pedido: dict, detalhe: str) -> str:
     username = username_relatorio(pedido)
     return (
-        "🚫 *PEDIDO BLOQUEADO ANTES DO PAGAMENTO*\n\n"
-        "O cliente tentou iniciar um pedido, mas o bot não gerou Pix porque detectou falta de saldo/reposição na plataforma.\n\n"
+        "🚫 *PEDIDO BLOQUEADO ANTES DO DÉBITO*\n\n"
+        "O cliente tentou iniciar um pedido, mas o bot não descontou a carteira porque detectou falta de saldo/reposição na plataforma.\n\n"
         f"🆔 *Pedido:* `{md(pedido.get('pedido_id', ''))}`\n"
         f"🗂️ *Catálogo:* {md(pedido.get('catalogo', ''))}\n"
         f"📌 *Serviço:* {md(pedido.get('servico', ''))}\n"
@@ -5611,6 +5886,7 @@ def traduzir_status_local(status) -> str:
     mapa = {
         "aguardando_link": "Aguardando link/@ do cliente",
         "aguardando_email_iptv": "Aguardando e-mail do cliente",
+        "aguardando_saldo": "Aguardando saldo suficiente",
         "aguardando_pagamento": "Aguardando pagamento",
         "aguardando_aprovacao_admin": "Comprovante em análise",
         "pagamento_aprovado": "Pagamento aprovado",
@@ -5625,11 +5901,14 @@ def traduzir_status_local(status) -> str:
 def texto_status_pedido_local(pedido: dict, origem: str | None = None) -> str:
     plataforma_id = pedido.get("plataforma_order_id")
     status_api = pedido.get("plataforma_api_status")
+    status_local = traduzir_status_local(pedido.get("status"))
+    if pedido.get("forma_pagamento") == "saldo" and pedido.get("status") == "pagamento_aprovado":
+        status_local = "Saldo utilizado / pedido confirmado"
     linhas = [
         "📦 *Resumo do seu pedido*",
         "",
         f"🆔 *ID do pedido:* `{md(pedido.get('pedido_id', ''))}`",
-        f"📌 *Status:* {md(traduzir_status_local(pedido.get('status')))}",
+        f"📌 *Status:* {md(status_local)}",
     ]
 
     if pedido.get("catalogo"):
@@ -5804,10 +6083,122 @@ def btn(texto: str, data: str) -> InlineKeyboardButton:
 def menu_principal() -> InlineKeyboardMarkup:
     keyboard = [
         [btn("👤 Meu Perfil", "perfil:meu")],
+        [btn("💳 consultar saldo", "saldo:consultar")],
         [btn("📖 Catálogo de Serviços", "menu:catalogo")],
         [btn("🔎 Consultar Pedido", "pedido:consultar")],
         [btn("🎟️ Solicitar Suporte", "extra:atendimento")],
     ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def texto_carteira_saldo(user_id) -> str:
+    saldo = saldo_usuario_centavos(user_id)
+    return (
+        "💳 *Carteira de saldo — TW Store*\n\n"
+        f"Seu saldo disponível é de *R$ {md(centavos_para_moeda(saldo))}*.\n\n"
+        "*Como funciona*\n"
+        "1. Toque em *adicionar saldo*.\n"
+        "2. Informe um valor entre *R$ 5,00 e R$ 300,00*.\n"
+        f"3. O bot acrescenta a taxa de *{TAXA_RECARGA_PERCENTUAL}%* e gera o Pix com o total.\n"
+        "4. Assim que o pagamento for aprovado, o valor escolhido entra integralmente na sua carteira.\n"
+        "5. Nos próximos pedidos, o bot desconta o valor diretamente do seu saldo — sem gerar um novo Pix a cada compra.\n\n"
+        "🔒 Cada recarga é identificada e creditada uma única vez."
+    )
+
+
+def menu_carteira_saldo() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        [
+            [btn("💳 adicionar saldo", "saldo:adicionar")],
+            [btn("🏠 Voltar ao início", "voltar:inicio")],
+        ]
+    )
+
+
+def texto_informar_valor_recarga() -> str:
+    return (
+        "💳 *Adicionar saldo*\n\n"
+        "Digite quanto você quer adicionar à sua carteira.\n\n"
+        "• Mínimo: *R$ 5,00*\n"
+        "• Máximo: *R$ 300,00*\n\n"
+        "Exemplos: `5`, `20,00` ou `150,50`.\n\n"
+        f"Será acrescentada uma taxa de *{TAXA_RECARGA_PERCENTUAL}%* ao Pix. "
+        "O valor que você escolher será creditado integralmente como saldo.\n\n"
+        "Depois que você enviar o valor, vou gerar um Pix exclusivo para esta recarga."
+    )
+
+
+def menu_cancelar_recarga() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        [
+            [btn("⬅️ Voltar para o saldo", "saldo:consultar")],
+            [btn("🏠 Menu inicial", "voltar:inicio")],
+        ]
+    )
+
+
+def texto_pix_recarga(recarga: dict) -> str:
+    expira_em = recarga.get("pagamento_expira_em")
+    linha_expiracao = f"\n⌛ *Válido até:* {md(expira_em)}" if expira_em else ""
+    valor_saldo = recarga.get("valor_saldo") or recarga.get("valor") or "0,00"
+    taxa = recarga.get("taxa") or "0,00"
+    valor_pagamento = recarga.get("valor_pagamento") or recarga.get("valor") or "0,00"
+    return (
+        "✅ *Pix de recarga gerado*\n\n"
+        f"💳 *Saldo que será adicionado:* R$ {md(valor_saldo)}\n"
+        f"🧾 *Taxa de {TAXA_RECARGA_PERCENTUAL}%:* R$ {md(taxa)}\n"
+        f"💰 *Total do Pix:* R$ {md(valor_pagamento)}\n"
+        f"🧾 *ID da recarga:* `{md(recarga.get('recarga_id', ''))}`"
+        f"{linha_expiracao}\n\n"
+        "Toque em *Copiar Pix*, abra o aplicativo do seu banco e conclua o pagamento.\n\n"
+        "Após pagar, aguarde alguns segundos e toque em *Verificar recarga*. "
+        "A confirmação também pode acontecer automaticamente."
+    )
+
+
+def texto_confirmacao_recarga(
+    recarga: dict,
+    saldo_disponivel_centavos: int,
+    ja_aprovada: bool = False,
+) -> str:
+    titulo = "✅ *Recarga já aprovada*" if ja_aprovada else "✅ *Recarga aprovada!*"
+    valor_saldo = recarga.get("valor_saldo") or recarga.get("valor") or "0,00"
+    linhas = [
+        titulo,
+        "",
+        f"💰 *Valor adicionado:* R$ {md(valor_saldo)}",
+    ]
+    if recarga.get("taxa_centavos") is not None:
+        linhas.extend(
+            [
+                f"🧾 *Taxa de {TAXA_RECARGA_PERCENTUAL}%:* R$ {md(recarga.get('taxa', '0,00'))}",
+                f"💵 *Total pago:* R$ {md(recarga.get('valor_pagamento', valor_saldo))}",
+            ]
+        )
+    linhas.extend(
+        [
+            f"💳 *Saldo disponível:* R$ {md(centavos_para_moeda(saldo_disponivel_centavos))}",
+            f"🧾 *ID da recarga:* `{md(recarga.get('recarga_id', ''))}`",
+        ]
+    )
+    return "\n".join(linhas)
+
+
+def botoes_pix_recarga(recarga: dict, permitir_retomar: bool = False) -> InlineKeyboardMarkup:
+    recarga_id = str(recarga.get("recarga_id") or "")
+    pix_copia = recarga.get("mp_qr_code") or "PIX_NAO_CONFIGURADO"
+    keyboard = [
+        [InlineKeyboardButton("📋 Copiar Pix", copy_text=CopyTextButton(pix_copia))],
+        [btn("✅ Verificar recarga", f"saldo:verificar:{recarga_id}")],
+    ]
+    if permitir_retomar:
+        keyboard.append([btn("🛒 Usar saldo no pedido", "saldo:retomar_pedido")])
+    keyboard.extend(
+        [
+            [btn("💳 Consultar saldo", "saldo:consultar")],
+            [btn("🏠 Menu inicial", "voltar:inicio")],
+        ]
+    )
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -5973,7 +6364,7 @@ def menu_iptv() -> InlineKeyboardMarkup:
 def botoes_confirmar_email_iptv() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [btn("✅ Confirmar e ir para pagamento", "confirmar_email_iptv")],
+            [btn("✅ Confirmar e usar saldo", "confirmar_email_iptv")],
             [btn("✏️ Alterar e-mail", "alterar_email_iptv")],
             [btn("🏠 Cancelar / Menu", "voltar:inicio")],
         ]
@@ -6393,40 +6784,164 @@ async def enviar_foto_sequencial(update: Update, context: ContextTypes.DEFAULT_T
     return mensagem
 
 
-async def enviar_pagamento_cliente(update: Update, context: ContextTypes.DEFAULT_TYPE, pedido: dict):
-    """Troca a aba atual pela aba de pagamento, sem empilhar outra mensagem do bot."""
+def botoes_saldo_insuficiente(pedido: dict | None = None) -> InlineKeyboardMarkup:
+    texto_alterar = "✏️ Alterar e-mail" if catalogo_exige_email(pedido or {}) else "✏️ Alterar link/@"
+    return InlineKeyboardMarkup(
+        [
+            [btn("💳 adicionar saldo", "saldo:adicionar")],
+            [btn("💳 Consultar saldo", "saldo:consultar")],
+            [btn(texto_alterar, "alterar_link")],
+            [btn("🏠 Cancelar / Menu", "voltar:inicio")],
+        ]
+    )
+
+
+def texto_saldo_insuficiente_pedido(pedido: dict, saldo_centavos: int) -> str:
+    valor_centavos = valor_para_centavos(pedido.get("valor"))
+    faltam = max(0, valor_centavos - int(saldo_centavos or 0))
+    return (
+        "⚠️ *Saldo insuficiente*\n\n"
+        f"💳 *Seu saldo:* R$ {md(centavos_para_moeda(saldo_centavos))}\n"
+        f"🛒 *Valor do pedido:* R$ {md(centavos_para_moeda(valor_centavos))}\n"
+        f"➕ *Falta adicionar:* R$ {md(centavos_para_moeda(faltam))}\n\n"
+        "Adicione saldo à sua carteira para concluir este pedido. Nenhum valor foi descontado."
+    )
+
+
+async def processar_pedido_com_saldo_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    pedido: dict,
+):
+    if not pedido or not pedido.get("link"):
+        await safe_edit_or_reply(
+            update,
+            "Não encontrei um pedido completo. Toque em /start para começar novamente.",
+        )
+        return
+
+    user_id = str(pedido.get("user_id") or telegram_id_update(update))
+    valor_centavos = valor_para_centavos(pedido.get("valor"))
+    if valor_centavos <= 0:
+        await enviar_texto_sequencial(
+            update,
+            context,
+            "⚠️ Não consegui identificar o valor deste pedido. Escolha o serviço novamente.",
+            InlineKeyboardMarkup([[btn("📖 Voltar ao catálogo", "menu:catalogo")]]),
+        )
+        return
+
+    saldo_atual = saldo_usuario_centavos(user_id)
+    if saldo_atual < valor_centavos:
+        pedido["status"] = "aguardando_saldo"
+        await enviar_texto_sequencial(
+            update,
+            context,
+            texto_saldo_insuficiente_pedido(pedido, saldo_atual),
+            botoes_saldo_insuficiente(pedido),
+        )
+        return
+
+    # Confere a disponibilidade externa antes de mexer na carteira do cliente.
     if not await verificar_reposicao_antes_pagamento(update, context, pedido):
         return
 
-    if mercado_pago_configurado():
-        ok, mensagem = await garantir_pagamento_mercado_pago(pedido)
-        if not ok:
-            await enviar_texto_sequencial(
-                update,
-                context,
-                (
-                    "⚠️ Não consegui gerar o Pix automático pelo Mercado Pago.\n\n"
-                    f"*Erro:* {md(mensagem)}\n\n"
-                    "Verifique se a variável `MERCADO_PAGO_ACCESS_TOKEN` está configurada no Railway."
-                ),
-                InlineKeyboardMarkup([[btn("🏠 Menu inicial", "voltar:inicio")]]),
-            )
-            return
+    aprovado_em = agora_br().strftime("%d/%m/%Y %H:%M:%S")
+    pedido_debito = dict(pedido)
+    pedido_debito.update(
+        {
+            "status": "pagamento_aprovado",
+            "forma_pagamento": "saldo",
+            "aprovado_em": aprovado_em,
+            "aprovado_por": "Saldo da carteira",
+            "saldo_debitado_em": aprovado_em,
+            "saldo_debitado_centavos": valor_centavos,
+        }
+    )
 
-        await enviar_texto_sequencial(update, context, texto_pagamento(pedido), botoes_pagamento(pedido), parse_mode=None)
+    try:
+        resultado = await asyncio.to_thread(
+            DB.debitar_saldo_pedido,
+            user_id,
+            str(pedido_debito.get("pedido_id") or ""),
+            valor_centavos,
+            pedido_debito,
+        )
+    except Exception as exc:
+        logging.exception("Falha ao debitar saldo do pedido %s", pedido_debito.get("pedido_id"))
+        await enviar_texto_sequencial(
+            update,
+            context,
+            f"⚠️ Não consegui reservar o saldo deste pedido: {md(limpar_erro_api(exc))}",
+            InlineKeyboardMarkup([[btn("🏠 Menu inicial", "voltar:inicio")]]),
+        )
         return
 
-    imagem = None
-    if pedido.get("catalogo") == "Instagram":
-        imagem = gerar_imagem_pagamento_instagram(pedido)
-    elif pedido.get("catalogo") == "TikTok":
-        imagem = gerar_imagem_pagamento_tiktok(pedido)
-
-    if imagem is not None:
-        await enviar_foto_sequencial(update, context, imagem, botoes_pagamento(pedido))
+    if resultado.get("saldo_insuficiente"):
+        pedido["status"] = "aguardando_saldo"
+        await enviar_texto_sequencial(
+            update,
+            context,
+            texto_saldo_insuficiente_pedido(pedido, int(resultado.get("saldo_centavos") or 0)),
+            botoes_saldo_insuficiente(pedido),
+        )
         return
 
-    await enviar_texto_sequencial(update, context, texto_pagamento(pedido), botoes_pagamento(pedido), parse_mode=None)
+    if resultado.get("ja_processado"):
+        context.user_data.clear()
+        await enviar_texto_sequencial(
+            update,
+            context,
+            (
+                "✅ Este pedido já teve o saldo reservado e não será descontado novamente.\n\n"
+                "Consulte o pedido pelo menu para acompanhar o andamento."
+            ),
+            InlineKeyboardMarkup(
+                [
+                    [btn("🔎 Consultar Pedido", "pedido:consultar")],
+                    [btn("🏠 Menu inicial", "voltar:inicio")],
+                ]
+            ),
+        )
+        return
+
+    pedido.update(pedido_debito)
+    pedido["saldo_antes_centavos"] = int(resultado.get("saldo_antes_centavos") or 0)
+    pedido["saldo_apos_centavos"] = int(resultado.get("saldo_centavos") or 0)
+    salvar_pedido_pendente(pedido)
+
+    try:
+        await enviar_texto_sequencial(
+            update,
+            context,
+            (
+                "✅ *Saldo utilizado com sucesso!*\n\n"
+                f"💰 *Valor descontado:* R$ {md(centavos_para_moeda(valor_centavos))}\n"
+                f"💳 *Saldo restante:* R$ {md(centavos_para_moeda(pedido['saldo_apos_centavos']))}\n\n"
+                "Seu pedido está sendo processado."
+            ),
+        )
+    except Exception as exc:
+        logging.warning("Saldo debitado, mas não foi possível atualizar a tela do cliente: %s", exc)
+
+    if pedido.get("catalogo") in CATALOGOS_COM_ENVIO_API:
+        await enviar_pedido_para_plataforma(pedido)
+
+    salvar_pedido_historico(pedido)
+    remover_pedido_pendente(str(pedido.get("pedido_id") or ""))
+    await enviar_relatorio_admin(update, context, pedido)
+    await enviar_texto_sequencial(
+        update,
+        context,
+        texto_final_pedido(pedido),
+        InlineKeyboardMarkup([[btn("🏠 Menu inicial", "voltar:inicio")]]),
+    )
+    context.user_data.clear()
+
+
+async def enviar_pagamento_cliente(update: Update, context: ContextTypes.DEFAULT_TYPE, pedido: dict):
+    """Compatibilidade: novos pedidos usam somente o saldo da carteira."""
+    await processar_pedido_com_saldo_cliente(update, context, pedido)
 
 
 def botoes_pagamento(pedido: dict | None = None) -> InlineKeyboardMarkup:
@@ -7791,18 +8306,202 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await enviar_inicio_cliente(update, context)
 
 
+async def processar_valor_recarga_saldo(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    texto_usuario: str,
+):
+    valor_centavos = parse_valor_recarga_centavos(texto_usuario)
+    if valor_centavos is None:
+        await update.message.reply_text(
+            "❌ Digite somente o valor. Exemplos: `5`, `20,00` ou `150,50`.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=menu_cancelar_recarga(),
+        )
+        return
+
+    if not SALDO_MINIMO_RECARGA_CENTAVOS <= valor_centavos <= SALDO_MAXIMO_RECARGA_CENTAVOS:
+        await update.message.reply_text(
+            "❌ O valor da recarga precisa ficar entre *R$ 5,00 e R$ 300,00*.",
+            parse_mode=ParseMode.MARKDOWN,
+            reply_markup=menu_cancelar_recarga(),
+        )
+        return
+
+    context.user_data.pop("adicionando_saldo", None)
+    recarga = preparar_recarga_saldo(update, valor_centavos)
+    context.user_data["recarga_saldo_id"] = recarga["recarga_id"]
+    DB.salvar_recarga_saldo(recarga["recarga_id"], recarga)
+
+    ok, mensagem = await garantir_pix_recarga_saldo(recarga)
+    if not ok:
+        recarga["status"] = "erro_ao_gerar_pix"
+        recarga["erro"] = mensagem
+        recarga["atualizado_em"] = agora_br().strftime("%d/%m/%Y %H:%M:%S")
+        DB.salvar_recarga_saldo(recarga["recarga_id"], recarga)
+        await enviar_texto_sequencial(
+            update,
+            context,
+            (
+                "⚠️ Não consegui gerar o Pix da recarga agora.\n\n"
+                f"*Motivo:* {md(mensagem)}\n\n"
+                "Tente novamente em alguns instantes."
+            ),
+            menu_cancelar_recarga(),
+        )
+        return
+
+    await enviar_texto_sequencial(
+        update,
+        context,
+        texto_pix_recarga(recarga),
+        botoes_pix_recarga(recarga, permitir_retomar=bool(context.user_data.get("pedido"))),
+    )
+
+
+async def verificar_recarga_saldo_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    recarga_id: str,
+):
+    query = update.callback_query
+    recarga = DB.obter_recarga_saldo(recarga_id)
+    user_id = telegram_id_update(update)
+    if not recarga or str(recarga.get("user_id") or "") != user_id:
+        await query.answer("Recarga não encontrada para esta conta.", show_alert=True)
+        return
+
+    if recarga.get("status") == "aprovada":
+        await query.answer("Esta recarga já foi aprovada.")
+        await enviar_texto_sequencial(
+            update,
+            context,
+            texto_confirmacao_recarga(
+                recarga,
+                saldo_usuario_centavos(user_id),
+                ja_aprovada=True,
+            ),
+            botoes_pix_recarga(recarga, permitir_retomar=bool(context.user_data.get("pedido"))),
+        )
+        return
+
+    payment_id = str(recarga.get("mp_payment_id") or "")
+    if not payment_id:
+        await query.answer("Esta recarga não possui um Pix válido.", show_alert=True)
+        return
+
+    await query.answer("Verificando recarga...")
+    try:
+        pagamento = await asyncio.to_thread(consultar_pagamento_mercado_pago_sync, payment_id)
+    except Exception as exc:
+        await enviar_texto_sequencial(
+            update,
+            context,
+            f"⚠️ Não consegui consultar a recarga agora: {md(limpar_erro_api(exc))}",
+            botoes_pix_recarga(recarga, permitir_retomar=bool(context.user_data.get("pedido"))),
+        )
+        return
+
+    status_mp = str(pagamento.get("status") or "").lower()
+    if status_mp == "approved":
+        processado = await asyncio.to_thread(
+            processar_recarga_aprovada_sync,
+            recarga,
+            pagamento,
+            "verificacao_cliente",
+        )
+        recarga_atual = DB.obter_recarga_saldo(recarga_id) or recarga
+        if processado and recarga_atual.get("status") == "aprovada":
+            await enviar_texto_sequencial(
+                update,
+                context,
+                texto_confirmacao_recarga(
+                    recarga_atual,
+                    saldo_usuario_centavos(user_id),
+                ),
+                botoes_pix_recarga(
+                    recarga_atual,
+                    permitir_retomar=bool(context.user_data.get("pedido")),
+                ),
+            )
+            return
+
+        await enviar_texto_sequencial(
+            update,
+            context,
+            "⚠️ O pagamento foi localizado, mas a recarga não pôde ser validada. Fale com o suporte.",
+            menu_carteira_saldo(),
+        )
+        return
+
+    if status_mp in {"cancelled", "canceled", "expired"}:
+        recarga["status"] = "expirada" if status_mp == "expired" else "cancelada"
+        recarga["mp_status"] = status_mp
+        recarga["atualizado_em"] = agora_br().strftime("%d/%m/%Y %H:%M:%S")
+        DB.salvar_recarga_saldo(recarga_id, recarga)
+        await enviar_texto_sequencial(
+            update,
+            context,
+            "⌛ Este Pix não está mais disponível. Gere uma nova recarga para adicionar saldo.",
+            menu_carteira_saldo(),
+        )
+        return
+
+    await enviar_texto_sequencial(
+        update,
+        context,
+        (
+            "⏳ *Recarga aguardando pagamento*\n\n"
+            "Ainda não recebemos a confirmação do Pix. Confira no seu banco, aguarde alguns segundos e tente novamente."
+        ),
+        botoes_pix_recarga(recarga, permitir_retomar=bool(context.user_data.get("pedido"))),
+    )
+
+
+async def retomar_pedido_apos_recarga(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    pedido = context.user_data.get("pedido")
+    if not pedido or not pedido.get("link"):
+        await safe_edit_or_reply(
+            update,
+            "Seu saldo está disponível. Escolha um serviço no catálogo para fazer o pedido.",
+            InlineKeyboardMarkup(
+                [
+                    [btn("📖 Abrir catálogo", "menu:catalogo")],
+                    [btn("💳 Consultar saldo", "saldo:consultar")],
+                ]
+            ),
+        )
+        return
+    pedido["status"] = "aguardando_saldo"
+    await processar_pedido_com_saldo_cliente(update, context, pedido)
+
+
 def texto_final_pedido(pedido: dict) -> str:
+    pago_com_saldo = str(pedido.get("forma_pagamento") or "") == "saldo"
+    mensagem_confirmacao = (
+        "🎉 *Pedido confirmado com o saldo da sua carteira!*"
+        if pago_com_saldo
+        else "🎉 *Pagamento confirmado com sucesso!*"
+    )
+    status_confirmacao = "• Saldo utilizado e pedido confirmado" if pago_com_saldo else "• Pagamento aprovado"
+    detalhe_saldo = ""
+    if pago_com_saldo and pedido.get("saldo_apos_centavos") is not None:
+        detalhe_saldo = (
+            f"💳 *Saldo restante:* R$ {md(centavos_para_moeda(int(pedido.get('saldo_apos_centavos') or 0)))}\n"
+        )
+
     if pedido.get("catalogo") in CATALOGOS_COM_ENVIO_API:
         if pedido.get("plataforma_api_status") == "enviado":
             return (
                 "✅ *Etapa 3 de 3 — Pedido aprovado*\n\n"
-                "🎉 *Pagamento confirmado com sucesso!*\n\n"
+                f"{mensagem_confirmacao}\n\n"
                 f"📦 *Produto:* {md(pedido.get('catalogo', ''))}\n"
                 f"📌 *Serviço:* {md(pedido.get('servico', ''))}\n"
                 f"🔢 *Quantidade:* {md(pedido.get('quantidade', ''))}\n"
+                f"{detalhe_saldo}"
                 f"🚀 *ID na plataforma:* `{md(pedido.get('plataforma_order_id', 'Não informado'))}`\n\n"
                 "📌 *Status do pedido*\n"
-                "• Pagamento aprovado\n"
+                f"{status_confirmacao}\n"
                 "• Pedido enviado para a plataforma\n"
                 "• Processamento iniciado automaticamente\n\n"
                 "⏳ O tempo de conclusão pode variar conforme o volume do serviço.\n\n"
@@ -7812,14 +8511,14 @@ def texto_final_pedido(pedido: dict) -> str:
         erro = pedido.get("plataforma_api_erro") or "Erro não informado."
         if pedido.get("plataforma_api_status") == "revisao_manual":
             return (
-                "✅ *Etapa 3 de 3 — Pagamento aprovado*\n\n"
+                "✅ *Etapa 3 de 3 — Pedido confirmado*\n\n"
                 "⚠️ Para evitar pedido duplicado, o envio automático foi pausado e enviado para revisão manual.\n"
                 "O administrador vai conferir se esse pedido já apareceu na plataforma antes de reenviar.\n\n"
                 f"*Motivo:* {md(erro)}"
             )
 
         return (
-            "✅ *Etapa 3 de 3 — Pagamento aprovado*\n\n"
+            "✅ *Etapa 3 de 3 — Pedido confirmado*\n\n"
             "⚠️ O relatório foi enviado para o administrador, mas o envio automático para a plataforma falhou.\n\n"
             f"*Motivo:* {md(erro)}"
         )
@@ -7827,12 +8526,13 @@ def texto_final_pedido(pedido: dict) -> str:
     if catalogo_exige_email(pedido):
         return (
             "✅ *Etapa 3 de 3 — Pedido aprovado*\n\n"
-            "🎉 *Pagamento confirmado com sucesso!*\n\n"
+            f"{mensagem_confirmacao}\n\n"
             f"📦 *Produto:* {md(pedido.get('catalogo', ''))}\n"
             f"📌 *Serviço:* {md(pedido.get('servico', ''))}\n"
-            f"🆔 *Pedido:* `{md(pedido.get('pedido_id', ''))}`\n\n"
+            f"🆔 *Pedido:* `{md(pedido.get('pedido_id', ''))}`\n"
+            f"{detalhe_saldo}\n"
             "📌 *Status do pedido*\n"
-            "• Pagamento aprovado\n"
+            f"{status_confirmacao}\n"
             "• Pedido recebido pela equipe\n"
             "• Aguardando ativação/envio dos dados\n\n"
             "🛠️ *Próximo passo*\n"
@@ -7842,9 +8542,10 @@ def texto_final_pedido(pedido: dict) -> str:
 
     return (
         "✅ *Etapa 3 de 3 — Pedido aprovado*\n\n"
-        "🎉 *Pagamento confirmado com sucesso!*\n\n"
+        f"{mensagem_confirmacao}\n\n"
+        f"{detalhe_saldo}"
         "📌 *Status do pedido*\n"
-        "• Pagamento aprovado\n"
+        f"{status_confirmacao}\n"
         "• Pedido recebido pela equipe\n"
         "• Aguardando processamento\n\n"
         "🎫 Precisa de ajuda? Fale com o suporte."
@@ -8444,6 +9145,42 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("Faça o cadastro e aguarde a aprovação para usar o bot.", show_alert=True)
         return
 
+    if data == "saldo:consultar":
+        context.user_data.pop("adicionando_saldo", None)
+        context.user_data.pop("consulta_pedido", None)
+        context.user_data.pop("refil_pedido", None)
+        await safe_edit_or_reply(
+            update,
+            texto_carteira_saldo(telegram_id_update(update)),
+            menu_carteira_saldo(),
+        )
+        return
+
+    if data == "saldo:adicionar":
+        context.user_data.pop("consulta_pedido", None)
+        context.user_data.pop("refil_pedido", None)
+        context.user_data["adicionando_saldo"] = True
+        await safe_edit_or_reply(
+            update,
+            texto_informar_valor_recarga(),
+            menu_cancelar_recarga(),
+        )
+        return
+
+    if data.startswith("saldo:verificar:"):
+        recarga_id = data.split(":", 2)[2]
+        await verificar_recarga_saldo_cliente(update, context, recarga_id)
+        return
+
+    if data == "saldo:retomar_pedido":
+        await query.answer("Conferindo saldo e processando pedido...")
+        await retomar_pedido_apos_recarga(update, context)
+        return
+
+    # Qualquer navegação fora da carteira encerra somente a espera pelo valor,
+    # sem apagar um pedido que já esteja sendo montado.
+    context.user_data.pop("adicionando_saldo", None)
+
     if data == "suporte:chat":
         context.user_data.clear()
         await abrir_ticket_suporte(update, context)
@@ -8860,7 +9597,8 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not pedido or not catalogo_exige_email(pedido) or not pedido.get("link"):
             await safe_edit_or_reply(update, "Não encontrei o e-mail do pedido. Envie o e-mail novamente.")
             return
-        pedido["status"] = "aguardando_pagamento"
+        await query.answer("Conferindo saldo...")
+        pedido["status"] = "aguardando_saldo"
         await enviar_pagamento_cliente(update, context, pedido)
         return
 
@@ -9097,6 +9835,10 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if await processar_mensagem_ticket(update, context):
         return
 
+    if context.user_data.get("adicionando_saldo"):
+        await processar_valor_recarga_saldo(update, context, texto_usuario)
+        return
+
     if context.user_data.get("consulta_pedido"):
         await responder_consulta_pedido(update, context, texto_usuario)
         return
@@ -9150,7 +9892,7 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "📧 *Etapa 1 de 3 — Dados recebidos*\n\n"
                     "Confira o e-mail informado:\n\n"
                     f"`{md(pedido['link'])}`\n\n"
-                    "Se estiver correto, toque em *Confirmar e ir para pagamento*."
+                    "Se estiver correto, toque em *Confirmar e usar saldo*."
                 ),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=botoes_confirmar_email_iptv(),
@@ -9158,19 +9900,19 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        pedido["status"] = "aguardando_pagamento"
+        pedido["status"] = "aguardando_saldo"
         await enviar_pagamento_cliente(update, context, pedido)
         return
 
-    if pedido.get("catalogo") == "Instagram" and pedido.get("status") == "aguardando_pagamento":
+    if pedido.get("status") == "aguardando_saldo":
         await enviar_pagamento_cliente(update, context, pedido)
         return
 
     destino_recebido = "e-mail" if catalogo_exige_email(pedido) else "link/@"
     await update.message.reply_text(
-        f"✅ Já recebi o {destino_recebido} do cliente. Agora finalize pela aba de pagamento abaixo.",
+        f"✅ Já recebi o {destino_recebido}. O pedido será concluído usando o saldo da sua carteira.",
         parse_mode=ParseMode.MARKDOWN,
-        reply_markup=botoes_pagamento(pedido),
+        reply_markup=botoes_saldo_insuficiente(pedido),
     )
 
 
@@ -9190,6 +9932,14 @@ async def receber_comprovante(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text(
             "Para iniciar um pedido, toque em /start e escolha uma opção do catálogo.",
             reply_markup=menu_principal(),
+        )
+        return
+
+    if pedido.get("status") == "aguardando_saldo":
+        await update.message.reply_text(
+            "💳 Não é necessário enviar comprovante para pedidos. "
+            "O valor será descontado automaticamente do saldo da sua carteira.",
+            reply_markup=botoes_saldo_insuficiente(pedido),
         )
         return
 
