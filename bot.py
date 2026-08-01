@@ -25,7 +25,6 @@ from email.message import EmailMessage
 from email.utils import formataddr
 from html import escape as html_escape
 from datetime import datetime, timedelta, time
-from decimal import Decimal, InvalidOperation, ROUND_CEILING
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -190,28 +189,6 @@ except ValueError:
     PANEL_SERVICES_CACHE_TTL = 300
 PLATAFORMA_SERVICOS_CACHE = {"expira_em": 0.0, "dados": None}
 
-
-# Regra fixa de precificação dos serviços de engajamento:
-# custo atual da plataforma x 1,90, acrescido de 10% de segurança.
-# O resultado é arredondado para cima de R$ 0,10 em R$ 0,10 e nunca fica
-# abaixo de R$ 0,99. As constantes são fixas para impedir que configurações
-# antigas do ambiente reativem o modo de cálculo anterior.
-PRECO_DINAMICO_MULTIPLICADOR = Decimal("1.90")
-PRECO_DINAMICO_SEGURANCA_PERCENTUAL = Decimal("10")
-PRECO_DINAMICO_VALOR_MINIMO = Decimal("0.99")
-PRECO_DINAMICO_ARREDONDAMENTO = Decimal("0.10")
-try:
-    QUANTIDADE_DINAMICA_MINIMA = int(os.getenv("QUANTIDADE_DINAMICA_MINIMA", "100"))
-except ValueError:
-    QUANTIDADE_DINAMICA_MINIMA = 100
-try:
-    QUANTIDADE_DINAMICA_MAXIMA = int(os.getenv("QUANTIDADE_DINAMICA_MAXIMA", "100000"))
-except ValueError:
-    QUANTIDADE_DINAMICA_MAXIMA = 100000
-if QUANTIDADE_DINAMICA_MINIMA < 1:
-    QUANTIDADE_DINAMICA_MINIMA = 100
-if QUANTIDADE_DINAMICA_MAXIMA < QUANTIDADE_DINAMICA_MINIMA:
-    QUANTIDADE_DINAMICA_MAXIMA = 100000
 # Mercado Pago — Pix automático.
 # Configure essas variáveis no Railway, nunca direto no código.
 MERCADO_PAGO_ACCESS_TOKEN = os.getenv("MERCADO_PAGO_ACCESS_TOKEN", "").strip()
@@ -5141,12 +5118,11 @@ def consultar_saldo_plataforma_sync() -> dict:
     }
 
 
-def consultar_servicos_plataforma_sync(forcar_atualizacao: bool = False) -> list:
+def consultar_servicos_plataforma_sync() -> list:
     agora_cache = time_module.time()
     dados_cache = PLATAFORMA_SERVICOS_CACHE.get("dados")
     if (
-        not forcar_atualizacao
-        and PANEL_SERVICES_CACHE_TTL > 0
+        PANEL_SERVICES_CACHE_TTL > 0
         and isinstance(dados_cache, list)
         and agora_cache < float(PLATAFORMA_SERVICOS_CACHE.get("expira_em") or 0)
     ):
@@ -5171,15 +5147,12 @@ def consultar_servicos_plataforma_sync(forcar_atualizacao: bool = False) -> list
     return servicos
 
 
-def buscar_servico_plataforma_sync(
-    service_id: str,
-    forcar_atualizacao: bool = False,
-) -> dict | None:
+def buscar_servico_plataforma_sync(service_id: str) -> dict | None:
     service_id = str(service_id or "").strip()
     if not service_id:
         return None
 
-    servicos = consultar_servicos_plataforma_sync(forcar_atualizacao=forcar_atualizacao)
+    servicos = consultar_servicos_plataforma_sync()
     for servico in servicos:
         if not isinstance(servico, dict):
             continue
@@ -5334,103 +5307,11 @@ async def obter_limite_solicitacoes_item(
     return None
 
 
-def decimal_precificacao(valor, nome: str = "valor") -> Decimal:
-    try:
-        numero = Decimal(str(valor).strip().replace(",", "."))
-    except (InvalidOperation, AttributeError):
-        raise PlataformaAPIRequestError(f"Não foi possível interpretar {nome} para calcular o preço.")
-    if not numero.is_finite() or numero < 0:
-        raise PlataformaAPIRequestError(f"{nome.capitalize()} inválido para calcular o preço.")
-    return numero
-
-
-def formatar_valor_reais(valor: Decimal) -> str:
-    return f"{valor.quantize(Decimal('0.01')):.2f}".replace(".", ",")
-
-
-def arredondar_preco_para_cima(valor: Decimal, passo: Decimal) -> Decimal:
-    unidades = (valor / passo).to_integral_value(rounding=ROUND_CEILING)
-    return (unidades * passo).quantize(Decimal("0.01"))
-
-
-def calcular_preco_dinamico(custo_plataforma) -> dict:
-    """Aplica a regra fixa de venda ao custo atual retornado pelo painel."""
-    custo = decimal_precificacao(custo_plataforma, "custo da plataforma")
-    preco_multiplicado = custo * PRECO_DINAMICO_MULTIPLICADOR
-    preco_bruto = preco_multiplicado * (
-        Decimal("1") + PRECO_DINAMICO_SEGURANCA_PERCENTUAL / Decimal("100")
-    )
-    if preco_bruto <= PRECO_DINAMICO_VALOR_MINIMO:
-        preco_final = PRECO_DINAMICO_VALOR_MINIMO.quantize(Decimal("0.01"))
-    else:
-        preco_final = arredondar_preco_para_cima(
-            preco_bruto,
-            PRECO_DINAMICO_ARREDONDAMENTO,
-        )
-
-    return {
-        "custo": custo,
-        "preco_multiplicado": preco_multiplicado,
-        "preco_bruto": preco_bruto,
-        "preco_final": preco_final,
-        "valor": formatar_valor_reais(preco_final),
-    }
-
-
-def aplicar_preco_dinamico_pedido(pedido: dict, estimativa: dict) -> dict:
-    custo = estimativa.get("custo_estimado")
-    if custo is None:
-        raise PlataformaAPIRequestError(
-            "A plataforma não informou o custo deste serviço; o preço não pode ser calculado."
-        )
-    calculo = calcular_preco_dinamico(custo)
-    pedido["valor"] = calculo["valor"]
-    pedido["preco_dinamico"] = True
-    pedido["fonte_preco"] = "plataforma_api"
-    pedido["plataforma_service_id"] = str(estimativa.get("service_id") or "")
-    pedido["plataforma_rate"] = str(estimativa.get("rate") or "")
-    pedido["plataforma_custo_estimado"] = format(calculo["custo"], "f")
-    pedido["precificacao_dinamica"] = {
-        "fonte": "plataforma_api",
-        "regra": "multiplicador_fixo",
-        "multiplicador": format(PRECO_DINAMICO_MULTIPLICADOR, "f"),
-        "seguranca_percentual": format(PRECO_DINAMICO_SEGURANCA_PERCENTUAL, "f"),
-        "valor_minimo": format(PRECO_DINAMICO_VALOR_MINIMO, "f"),
-        "arredondamento": format(PRECO_DINAMICO_ARREDONDAMENTO, "f"),
-        "preco_multiplicado": format(calculo["preco_multiplicado"], "f"),
-        "preco_bruto": format(calculo["preco_bruto"], "f"),
-        "preco_final": format(calculo["preco_final"], "f"),
-        "calculado_em": agora_br().strftime("%d/%m/%Y %H:%M:%S"),
-    }
-    return pedido
-
-
-def atualizar_preco_dinamico_pedido_sync(
-    pedido: dict,
-    estimativa: dict | None = None,
-) -> dict:
-    # A precificação nunca usa o campo `valor` do catalogo.json. Quando não há
-    # uma estimativa explícita, força uma consulta atual à API da plataforma.
-    estimativa = estimativa or estimar_custo_pedido_plataforma_sync(
-        pedido,
-        forcar_atualizacao=True,
-    )
-    aplicar_preco_dinamico_pedido(pedido, estimativa)
-    return estimativa
-
-
-def estimar_custo_pedido_plataforma_sync(
-    pedido: dict,
-    forcar_atualizacao: bool = False,
-) -> dict:
+def estimar_custo_pedido_plataforma_sync(pedido: dict) -> dict:
     service_id = obter_service_id_api(pedido)
     quantidade = quantidade_para_api(pedido.get("quantidade_api") or pedido.get("quantidade"))
 
-    # `servico` vem do endpoint action=services da plataforma, não do catálogo.
-    servico = buscar_servico_plataforma_sync(
-        service_id,
-        forcar_atualizacao=forcar_atualizacao,
-    )
+    servico = buscar_servico_plataforma_sync(service_id)
     if servico is None:
         raise PlataformaEstoqueIndisponivel(
             f"Service ID {service_id} não encontrado na lista de serviços da plataforma."
@@ -5467,10 +5348,6 @@ def estimar_custo_pedido_plataforma_sync(
 
 
 def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
-    estimativa = None
-    if pedido.get("preco_dinamico") and not pedido.get("precificacao_travada_em"):
-        estimativa = atualizar_preco_dinamico_pedido_sync(pedido)
-
     if not CHECK_ESTOQUE_ANTES_PAGAMENTO:
         return True, "Verificação antes do pagamento desativada."
 
@@ -5481,7 +5358,7 @@ def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
     saldo = float(saldo_info["saldo"])
     moeda = str(saldo_info.get("moeda") or "").strip()
 
-    estimativa = estimativa or estimar_custo_pedido_plataforma_sync(pedido)
+    estimativa = estimar_custo_pedido_plataforma_sync(pedido)
     custo = estimativa.get("custo_estimado")
     service_id = estimativa.get("service_id")
     quantidade = estimativa.get("quantidade")
@@ -6140,242 +6017,6 @@ def get_item_instagram_brasileiros(servico_chave: str, quantidade: int) -> dict:
     raise KeyError("Item não encontrado")
 
 
-SERVICOS_QUANTIDADE_DINAMICA = {"seguidores", "curtidas", "visualizacoes"}
-
-
-def configuracao_servico_dinamico(origem: str, servico_chave: str) -> dict | None:
-    if servico_chave not in SERVICOS_QUANTIDADE_DINAMICA:
-        return None
-
-    configuracoes = {
-        "instagram": {
-            "catalogo": "Instagram",
-            "catalogo_api": "Instagram",
-            "servicos": CATALOGO["catalogos"]["instagram"]["servicos"],
-            "voltar": "catalogo_instagram:estrangeiros",
-        },
-        "instagram_brasileiros": {
-            "catalogo": "Instagram — Serviços Brasileiros",
-            "catalogo_api": "Instagram_Brasileiros",
-            "servicos": CATALOGO["catalogos"]["instagram"].get("servicos_brasileiros", {}),
-            "voltar": "catalogo_instagram:brasileiros",
-        },
-        "tiktok": {
-            "catalogo": "TikTok",
-            "catalogo_api": "TikTok",
-            "servicos": CATALOGO["catalogos"]["tiktok"]["servicos"],
-            "voltar": "catalogo_tiktok:estrangeiros",
-        },
-        "kwai": {
-            "catalogo": "Kwai",
-            "catalogo_api": "Kwai",
-            "servicos": CATALOGO["catalogos"]["kwai"]["servicos"],
-            "voltar": "catalogo_kwai:brasileiros",
-        },
-    }
-    base = configuracoes.get(origem)
-    if not base:
-        return None
-    servico = base["servicos"].get(servico_chave)
-    if not servico:
-        return None
-    return {
-        "origem": origem,
-        "catalogo": base["catalogo"],
-        "catalogo_api": base["catalogo_api"],
-        "servico_chave": servico_chave,
-        "servico": servico,
-        "voltar": base["voltar"],
-    }
-
-
-def normalizar_quantidade_dinamica(texto) -> tuple[int | None, str]:
-    valor = re.sub(r"\s+", "", str(texto or "").strip())
-    if re.fullmatch(r"\d+", valor):
-        normalizado = valor
-    elif re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", valor):
-        normalizado = re.sub(r"[.,]", "", valor)
-    else:
-        return None, "Digite somente um número inteiro, como 1000 ou 10.000."
-
-    quantidade = int(normalizado)
-    if quantidade < QUANTIDADE_DINAMICA_MINIMA:
-        return None, (
-            f"A quantidade mínima é {formatar_inteiro_br(QUANTIDADE_DINAMICA_MINIMA)}."
-        )
-    if quantidade > QUANTIDADE_DINAMICA_MAXIMA:
-        return None, (
-            f"A quantidade máxima é {formatar_inteiro_br(QUANTIDADE_DINAMICA_MAXIMA)}."
-        )
-    return quantidade, ""
-
-
-def texto_solicitar_quantidade(configuracao: dict) -> str:
-    servico = configuracao["servico"].get("nome") or configuracao["servico_chave"].title()
-    return (
-        "🔢 *Informe a quantidade*\n\n"
-        f"📲 *Plataforma:* {md(configuracao['catalogo'])}\n"
-        f"📌 *Serviço:* {md(servico)}\n\n"
-        f"Digite uma quantidade entre *{formatar_inteiro_br(QUANTIDADE_DINAMICA_MINIMA)}* "
-        f"e *{formatar_inteiro_br(QUANTIDADE_DINAMICA_MAXIMA)}*.\n\n"
-        "Você pode escolher qualquer número inteiro dentro desse intervalo.\n"
-        "Exemplo: `1250`"
-    )
-
-
-def botoes_voltar_quantidade(configuracao: dict) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [btn("⬅️ Voltar aos serviços", configuracao["voltar"])],
-    ])
-
-
-async def iniciar_quantidade_dinamica(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-    origem: str,
-    servico_chave: str,
-):
-    configuracao = configuracao_servico_dinamico(origem, servico_chave)
-    if not configuracao:
-        await safe_edit_or_reply(
-            update,
-            "❌ Serviço não encontrado para calcular a quantidade.",
-            InlineKeyboardMarkup([[btn("⬅️ Voltar ao catálogo", "menu:catalogo")]]),
-        )
-        return
-    context.user_data.pop("pedido", None)
-    context.user_data["quantidade_dinamica"] = {
-        "origem": origem,
-        "servico_chave": servico_chave,
-    }
-    mensagem = await safe_edit_or_reply(
-        update,
-        texto_solicitar_quantidade(configuracao),
-        botoes_voltar_quantidade(configuracao),
-    )
-    guardar_mensagem_bot(context, mensagem)
-
-
-def criar_pedido_quantidade_dinamica_sync(
-    configuracao: dict,
-    quantidade: int,
-    usuario: dict,
-) -> dict:
-    servico = configuracao["servico"]
-    pedido = {
-        "catalogo": configuracao["catalogo"],
-        "catalogo_api": configuracao["catalogo_api"],
-        "servico_chave": configuracao["servico_chave"],
-        "servico": servico.get("nome") or configuracao["servico_chave"].title(),
-        "quantidade": formatar_inteiro_br(quantidade),
-        "quantidade_api": quantidade,
-        "api_service_id": servico.get("api_service_id"),
-        "link": None,
-        "status": "aguardando_link",
-        "usuario": usuario.get("full_name") or "Cliente",
-        "username": usuario.get("username"),
-        "user_id": usuario.get("id"),
-    }
-    estimativa = estimar_custo_pedido_plataforma_sync(
-        pedido,
-        forcar_atualizacao=True,
-    )
-    aplicar_preco_dinamico_pedido(pedido, estimativa)
-    return preparar_pedido(pedido)
-
-
-def texto_pedido_quantidade_dinamica(pedido: dict) -> str:
-    publicacao = pedido.get("servico_chave") in {"curtidas", "visualizacoes"}
-    instrucao = (
-        "Envie agora o link da publicação para continuar."
-        if publicacao
-        else "Envie agora o link ou @ do perfil para continuar."
-    )
-    return (
-        "🛒 Etapa 1 de 3 — Quantidade confirmada\n\n"
-        "📋 Resumo do pedido\n\n"
-        f"📲 Plataforma: {pedido.get('catalogo', '')}\n"
-        f"📌 Serviço: {pedido.get('servico', '')}\n"
-        f"🔢 Quantidade: {pedido.get('quantidade', '')}\n"
-        f"💰 Valor calculado: R$ {pedido.get('valor', '')}\n\n"
-        f"{instrucao}"
-    )
-
-
-async def processar_quantidade_dinamica(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE,
-    texto_quantidade,
-) -> bool:
-    estado = context.user_data.get("quantidade_dinamica") or {}
-    configuracao = configuracao_servico_dinamico(
-        str(estado.get("origem") or ""),
-        str(estado.get("servico_chave") or ""),
-    )
-    if not configuracao:
-        context.user_data.pop("quantidade_dinamica", None)
-        return False
-
-    quantidade, erro = normalizar_quantidade_dinamica(texto_quantidade)
-    if erro:
-        await update.effective_message.reply_text(
-            f"⚠️ {erro}\n\nTente novamente.",
-            reply_markup=botoes_voltar_quantidade(configuracao),
-        )
-        return True
-
-    usuario_update = update.effective_user
-    usuario = {
-        "full_name": getattr(usuario_update, "full_name", "Cliente"),
-        "username": getattr(usuario_update, "username", None),
-        "id": getattr(usuario_update, "id", None),
-    }
-    try:
-        pedido = await asyncio.to_thread(
-            criar_pedido_quantidade_dinamica_sync,
-            configuracao,
-            quantidade,
-            usuario,
-        )
-    except PlataformaEstoqueIndisponivel as exc:
-        await update.effective_message.reply_text(
-            "⚠️ Esta quantidade não está disponível para o serviço selecionado.\n\n"
-            f"Detalhe: {limpar_erro_api(exc)}\n\n"
-            "Digite outra quantidade dentro do limite informado.",
-            reply_markup=botoes_voltar_quantidade(configuracao),
-        )
-        return True
-    except (PlataformaAPIConfigError, PlataformaAPIRequestError) as exc:
-        logging.warning("Falha ao calcular preço dinâmico: %s", limpar_erro_api(exc))
-        await update.effective_message.reply_text(
-            "⚠️ Não consegui consultar o preço atual deste serviço.\n\n"
-            "Tente novamente em alguns instantes ou fale com o suporte.",
-            reply_markup=botoes_voltar_quantidade(configuracao),
-        )
-        return True
-    except Exception as exc:
-        logging.exception("Erro inesperado na precificação dinâmica: %s", limpar_erro_api(exc))
-        await update.effective_message.reply_text(
-            "⚠️ Não consegui calcular o pedido agora. Tente novamente em alguns instantes.",
-            reply_markup=botoes_voltar_quantidade(configuracao),
-        )
-        return True
-
-    context.user_data.pop("quantidade_dinamica", None)
-    context.user_data["pedido"] = pedido
-    await enviar_texto_sequencial(
-        update,
-        context,
-        texto_pedido_quantidade_dinamica(pedido),
-        InlineKeyboardMarkup([
-            [btn("⬅️ Alterar quantidade", f"servico_dinamico:{configuracao['origem']}:{configuracao['servico_chave']}")],
-            [btn("🏠 Cancelar / Menu", "voltar:inicio")],
-        ]),
-        parse_mode=None,
-    )
-    return True
-
-
 def texto_pagamento(pedido: dict) -> str:
     # Monta a etapa de pagamento usando Pix dinâmico do Mercado Pago quando disponível.
     destino_label = "E-mail informado" if catalogo_exige_email(pedido) else "Link/@ enviado"
@@ -6756,8 +6397,6 @@ async def enviar_pagamento_cliente(update: Update, context: ContextTypes.DEFAULT
     """Troca a aba atual pela aba de pagamento, sem empilhar outra mensagem do bot."""
     if not await verificar_reposicao_antes_pagamento(update, context, pedido):
         return
-    if pedido.get("preco_dinamico") and not pedido.get("precificacao_travada_em"):
-        pedido["precificacao_travada_em"] = agora_br().strftime("%d/%m/%Y %H:%M:%S")
 
     if mercado_pago_configurado():
         ok, mensagem = await garantir_pagamento_mercado_pago(pedido)
@@ -8805,20 +8444,6 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("Faça o cadastro e aguarde a aprovação para usar o bot.", show_alert=True)
         return
 
-    callbacks_quantidade = (
-        "servico:",
-        "servico_instagram_br:",
-        "servico_tiktok:",
-        "servico_kwai:",
-        "servico_dinamico:",
-        "item:",
-        "item_instagram_br:",
-        "item_tiktok:",
-        "item_kwai:",
-    )
-    if not data.startswith(callbacks_quantidade):
-        context.user_data.pop("quantidade_dinamica", None)
-
     if data == "suporte:chat":
         context.user_data.clear()
         await abrir_ticket_suporte(update, context)
@@ -8982,34 +8607,64 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await enviar_instagram_brasileiros_cliente(update, context)
         return
 
-    if data.startswith("servico_dinamico:"):
-        _, origem, servico_chave = data.split(":", 2)
-        await iniciar_quantidade_dinamica(
-            update,
-            context,
-            origem,
-            servico_chave,
-        )
-        return
-
     if data.startswith("servico_instagram_br:"):
         servico_chave = data.split(":", 1)[1]
-        await iniciar_quantidade_dinamica(
-            update,
-            context,
-            "instagram_brasileiros",
-            servico_chave,
-        )
+        servico = CATALOGO["catalogos"]["instagram"].get("servicos_brasileiros", {}).get(servico_chave)
+        if not servico:
+            await safe_edit_or_reply(
+                update,
+                "❌ Serviço brasileiro não encontrado no catálogo.",
+                InlineKeyboardMarkup([[btn("⬅️ Voltar aos serviços brasileiros", "catalogo_instagram:brasileiros")]]),
+            )
+            return
+
+        if not servico.get("itens"):
+            await safe_edit_or_reply(
+                update,
+                servico.get("mensagem") or (
+                    f"🇧🇷 *Instagram — {servico.get('nome', 'Serviço brasileiro')}*\n\n"
+                    "Os botões já foram adicionados, mas os valores/pacotes ainda não foram configurados.\n\n"
+                    "Quando você adicionar os valores no catálogo, eles aparecem aqui."
+                ),
+                menu_itens_instagram_brasileiros(servico_chave),
+            )
+            return
+
+        await safe_edit_or_reply(update, servico["mensagem"], menu_itens_instagram_brasileiros(servico_chave))
         return
 
     if data.startswith("item_instagram_br:"):
         _, servico_chave, quantidade_str = data.split(":")
-        context.user_data["quantidade_dinamica"] = {
-            "origem": "instagram_brasileiros",
+        quantidade = int(quantidade_str)
+        item = get_item_instagram_brasileiros(servico_chave, quantidade)
+        servico = CATALOGO["catalogos"]["instagram"]["servicos_brasileiros"][servico_chave]
+
+        pedido = preparar_pedido({
+            "catalogo": "Instagram — Serviços Brasileiros",
+            "catalogo_api": "Instagram_Brasileiros",
             "servico_chave": servico_chave,
-        }
-        await query.answer("Calculando o valor atual...")
-        await processar_quantidade_dinamica(update, context, quantidade_str)
+            "servico": servico["nome"],
+            "quantidade": item["quantidade_texto"],
+            "quantidade_api": item["quantidade"],
+            "api_service_id": item.get("api_service_id") or servico.get("api_service_id"),
+            "valor": item["valor"],
+            "link": None,
+            "status": "aguardando_link",
+            "usuario": update.effective_user.full_name,
+            "username": update.effective_user.username,
+            "user_id": update.effective_user.id,
+        })
+        info_limite = await obter_limite_solicitacoes_item("Instagram_Brasileiros", servico_chave, item, servico)
+        aplicar_limite_solicitacoes_no_pedido(pedido, info_limite)
+        context.user_data["pedido"] = pedido
+        mensagem_item = aplicar_limite_solicitacoes_na_mensagem(item["mensagem"], info_limite)
+
+        await safe_edit_or_reply(
+            update,
+            mensagem_item,
+            InlineKeyboardMarkup([[btn("⬅️ Voltar", f"servico_instagram_br:{servico_chave}")]]),
+            parse_mode=None,
+        )
         return
 
     if data == "catalogo:tiktok":
@@ -9022,17 +8677,41 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data.startswith("servico_tiktok:"):
         servico_chave = data.split(":", 1)[1]
-        await iniciar_quantidade_dinamica(update, context, "tiktok", servico_chave)
+        servico = CATALOGO["catalogos"]["tiktok"]["servicos"][servico_chave]
+        await safe_edit_or_reply(update, servico["mensagem"], menu_itens_tiktok(servico_chave))
         return
 
     if data.startswith("item_tiktok:"):
         _, servico_chave, quantidade_str = data.split(":")
-        context.user_data["quantidade_dinamica"] = {
-            "origem": "tiktok",
+        quantidade = int(quantidade_str)
+        item = get_item_tiktok(servico_chave, quantidade)
+        servico = CATALOGO["catalogos"]["tiktok"]["servicos"][servico_chave]
+
+        pedido = preparar_pedido({
+            "catalogo": "TikTok",
             "servico_chave": servico_chave,
-        }
-        await query.answer("Calculando o valor atual...")
-        await processar_quantidade_dinamica(update, context, quantidade_str)
+            "servico": servico["nome"],
+            "quantidade": item["quantidade_texto"],
+            "quantidade_api": item["quantidade"],
+            "api_service_id": item.get("api_service_id") or servico.get("api_service_id"),
+            "valor": item["valor"],
+            "link": None,
+            "status": "aguardando_link",
+            "usuario": update.effective_user.full_name,
+            "username": update.effective_user.username,
+            "user_id": update.effective_user.id,
+        })
+        info_limite = await obter_limite_solicitacoes_item("TikTok", servico_chave, item, servico)
+        aplicar_limite_solicitacoes_no_pedido(pedido, info_limite)
+        context.user_data["pedido"] = pedido
+        mensagem_item = aplicar_limite_solicitacoes_na_mensagem(item["mensagem"], info_limite)
+
+        await safe_edit_or_reply(
+            update,
+            mensagem_item,
+            InlineKeyboardMarkup([[btn("⬅️ Voltar", f"servico_tiktok:{servico_chave}")]]),
+            parse_mode=None,
+        )
         return
 
     
@@ -9050,17 +8729,48 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data.startswith("servico_kwai:"):
         context.user_data.pop("pedido", None)
         servico_chave = data.split(":", 1)[1]
-        await iniciar_quantidade_dinamica(update, context, "kwai", servico_chave)
+        servico = CATALOGO["catalogos"]["kwai"]["servicos"].get(servico_chave)
+        if not servico:
+            await safe_edit_or_reply(
+                update,
+                "❌ Serviço Kwai não encontrado no catálogo.",
+                InlineKeyboardMarkup([[btn("⬅️ Voltar aos serviços Kwai", "catalogo_kwai:brasileiros")]]),
+            )
+            return
+        await safe_edit_or_reply(update, servico["mensagem"], menu_itens_kwai(servico_chave))
         return
 
     if data.startswith("item_kwai:"):
         _, servico_chave, quantidade_str = data.split(":")
-        context.user_data["quantidade_dinamica"] = {
-            "origem": "kwai",
+        quantidade = int(quantidade_str)
+        item = get_item_kwai(servico_chave, quantidade)
+        servico = CATALOGO["catalogos"]["kwai"]["servicos"][servico_chave]
+
+        pedido = preparar_pedido({
+            "catalogo": "Kwai",
             "servico_chave": servico_chave,
-        }
-        await query.answer("Calculando o valor atual...")
-        await processar_quantidade_dinamica(update, context, quantidade_str)
+            "servico": servico["nome"],
+            "quantidade": item["quantidade_texto"],
+            "quantidade_api": item["quantidade"],
+            "api_service_id": item.get("api_service_id") or servico.get("api_service_id"),
+            "valor": item["valor"],
+            "link": None,
+            "status": "aguardando_link",
+            "usuario": update.effective_user.full_name,
+            "username": update.effective_user.username,
+            "user_id": update.effective_user.id,
+        })
+        info_limite = await obter_limite_solicitacoes_item("Kwai", servico_chave, item, servico)
+        aplicar_limite_solicitacoes_no_pedido(pedido, info_limite)
+        context.user_data["pedido"] = pedido
+        mensagem_item = aplicar_limite_solicitacoes_na_mensagem(item["mensagem"], info_limite)
+
+        await safe_edit_or_reply(
+            update,
+            mensagem_item,
+            InlineKeyboardMarkup([[btn("⬅️ Voltar", f"servico_kwai:{servico_chave}")]]),
+            parse_mode=None,
+        )
         return
 
     if data == "catalogo:internet":
@@ -9156,17 +8866,41 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data.startswith("servico:"):
         servico_chave = data.split(":", 1)[1]
-        await iniciar_quantidade_dinamica(update, context, "instagram", servico_chave)
+        servico = CATALOGO["catalogos"]["instagram"]["servicos"][servico_chave]
+        await safe_edit_or_reply(update, servico["mensagem"], menu_itens(servico_chave))
         return
 
     if data.startswith("item:"):
         _, servico_chave, quantidade_str = data.split(":")
-        context.user_data["quantidade_dinamica"] = {
-            "origem": "instagram",
+        quantidade = int(quantidade_str)
+        item = get_item(servico_chave, quantidade)
+        servico = CATALOGO["catalogos"]["instagram"]["servicos"][servico_chave]
+
+        pedido = preparar_pedido({
+            "catalogo": "Instagram",
             "servico_chave": servico_chave,
-        }
-        await query.answer("Calculando o valor atual...")
-        await processar_quantidade_dinamica(update, context, quantidade_str)
+            "servico": servico["nome"],
+            "quantidade": item["quantidade_texto"],
+            "quantidade_api": item["quantidade"],
+            "api_service_id": item.get("api_service_id") or servico.get("api_service_id"),
+            "valor": item["valor"],
+            "link": None,
+            "status": "aguardando_link",
+            "usuario": update.effective_user.full_name,
+            "username": update.effective_user.username,
+            "user_id": update.effective_user.id,
+        })
+        info_limite = await obter_limite_solicitacoes_item("Instagram", servico_chave, item, servico)
+        aplicar_limite_solicitacoes_no_pedido(pedido, info_limite)
+        context.user_data["pedido"] = pedido
+        mensagem_item = aplicar_limite_solicitacoes_na_mensagem(item["mensagem"], info_limite)
+
+        await safe_edit_or_reply(
+            update,
+            mensagem_item,
+            InlineKeyboardMarkup([[btn("⬅️ Voltar", f"servico:{servico_chave}")]]),
+            parse_mode=None,
+        )
         return
 
     if data == "alterar_link":
@@ -9369,10 +9103,6 @@ async def receber_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if context.user_data.get("refil_pedido"):
         await processar_solicitacao_refil(update, context, texto_usuario)
-        return
-
-    if context.user_data.get("quantidade_dinamica"):
-        await processar_quantidade_dinamica(update, context, texto_usuario)
         return
 
     pedido = context.user_data.get("pedido")
