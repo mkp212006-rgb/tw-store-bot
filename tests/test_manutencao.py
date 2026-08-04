@@ -75,9 +75,20 @@ from roles import CARGO_GERENTE
 class FakeBot:
     def __init__(self):
         self.mensagens = []
+        self.apagadas = []
+        self._message_id = 0
 
     async def send_message(self, **kwargs):
         self.mensagens.append(kwargs)
+        self._message_id += 1
+        return SimpleNamespace(
+            chat_id=kwargs["chat_id"],
+            chat=SimpleNamespace(id=kwargs["chat_id"]),
+            message_id=self._message_id,
+        )
+
+    async def delete_message(self, **kwargs):
+        self.apagadas.append(kwargs)
 
 
 def fake_update(telegram_id: int, callback_data: str | None = None):
@@ -181,7 +192,16 @@ class ManutencaoTests(unittest.TestCase):
 
     def test_inicio_e_conclusao_notificam_todos_e_alteram_bloqueio(self):
         fake_bot = FakeBot()
-        contexto = SimpleNamespace(user_data={}, bot=fake_bot)
+        dados_conversas = {
+            200: {"ultima_chat_id_bot": 200, "ultima_mensagem_bot_id": 10, "pedido": {}},
+            300: {"ultima_chat_id_bot": 300, "ultima_mensagem_bot_id": 20},
+            400: {"ultima_chat_id_bot": 400, "ultima_mensagem_bot_id": 30},
+        }
+        contexto = SimpleNamespace(
+            user_data={},
+            bot=fake_bot,
+            application=SimpleNamespace(user_data=dados_conversas),
+        )
         inicio = fake_update(100, "admin_notificacoes:inicio")
         inicio_repetido = fake_update(100, "admin_notificacoes:inicio")
         conclusao = fake_update(100, "admin_notificacoes:conclusao")
@@ -205,7 +225,38 @@ class ManutencaoTests(unittest.TestCase):
         self.assertEqual({"200", "300", "400"}, ids_inicio)
         self.assertEqual({"200", "300", "400"}, ids_conclusao)
         self.assertIn("entrando em manutenção", fake_bot.mensagens[0]["text"])
-        self.assertIn("já está liberado", fake_bot.mensagens[-1]["text"])
+        self.assertIn("inicie o bot novamente", fake_bot.mensagens[-1]["text"])
+        self.assertIn("/start", fake_bot.mensagens[-1]["text"])
+        self.assertEqual(6, len(fake_bot.apagadas))
+        self.assertEqual(
+            {"200", "300", "400"},
+            {str(item["chat_id"]) for item in fake_bot.apagadas},
+        )
+        self.assertTrue(all(not dados for dados in dados_conversas.values()))
+        self.assertEqual(3, self.db.contar("mensagens_bot"))
+
+    def test_conclusao_apaga_somente_mensagens_registradas_do_bot(self):
+        self.db.registrar_mensagem_bot("200", 10)
+        self.db.registrar_mensagem_bot("200", 11)
+        self.db.registrar_mensagem_bot("300", 20)
+        fake_bot = FakeBot()
+
+        resultado = asyncio.run(
+            bot.apagar_mensagens_bot_usuarios(fake_bot, ["200", "300"])
+        )
+
+        self.assertEqual(3, resultado["mensagens_encontradas"])
+        self.assertEqual(3, resultado["mensagens_apagadas"])
+        self.assertEqual([], resultado["falhas_exclusao"])
+        self.assertEqual(0, self.db.contar("mensagens_bot"))
+        self.assertEqual(
+            [
+                {"chat_id": "200", "message_id": 10},
+                {"chat_id": "200", "message_id": 11},
+                {"chat_id": "300", "message_id": 20},
+            ],
+            fake_bot.apagadas,
+        )
 
 
 if __name__ == "__main__":
