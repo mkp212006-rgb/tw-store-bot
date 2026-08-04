@@ -91,6 +91,16 @@ class BotDatabase:
                     atualizado_em TEXT
                 );
 
+                CREATE TABLE IF NOT EXISTS pedidos_perfil_semanais (
+                    pedido_id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    semana_id TEXT NOT NULL,
+                    codigo_produto TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    dados_json TEXT NOT NULL,
+                    atualizado_em TEXT NOT NULL
+                );
+
                 CREATE TABLE IF NOT EXISTS comprovantes_usados (
                     file_unique_id TEXT PRIMARY KEY,
                     pedido_id TEXT,
@@ -117,6 +127,13 @@ class BotDatabase:
                     chave TEXT PRIMARY KEY,
                     dados_json TEXT NOT NULL,
                     atualizado_em TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS mensagens_bot (
+                    chat_id TEXT NOT NULL,
+                    message_id INTEGER NOT NULL,
+                    criado_em TEXT NOT NULL,
+                    PRIMARY KEY (chat_id, message_id)
                 );
 
                 CREATE TABLE IF NOT EXISTS webhook_events (
@@ -152,6 +169,10 @@ class BotDatabase:
                 CREATE INDEX IF NOT EXISTS idx_movimentacoes_saldo_user ON movimentacoes_saldo(user_id, criado_em);
                 CREATE INDEX IF NOT EXISTS idx_pedidos_pendentes_status ON pedidos_pendentes(status);
                 CREATE INDEX IF NOT EXISTS idx_pedidos_historico_user ON pedidos_historico(user_id);
+                CREATE INDEX IF NOT EXISTS idx_pedidos_perfil_user_semana
+                    ON pedidos_perfil_semanais(user_id, semana_id, atualizado_em);
+                CREATE INDEX IF NOT EXISTS idx_mensagens_bot_chat
+                    ON mensagens_bot(chat_id, message_id);
                 CREATE INDEX IF NOT EXISTS idx_webhook_status ON webhook_events(status, attempts, atualizado_em);
                 CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets_suporte(status, criado_em);
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_ticket_usuario_ativo
@@ -503,6 +524,110 @@ class BotDatabase:
     def salvar_pedido_historico(self, pedido_id, pedido: dict, commit: bool = True):
         self._salvar_pedido("pedidos_historico", pedido_id, pedido, commit)
 
+    def salvar_pedido_perfil_semanal(
+        self,
+        pedido_id,
+        user_id,
+        semana_id: str,
+        codigo_produto: str,
+        status: str,
+        pedido: dict,
+    ):
+        pedido_id = str(pedido_id or "").strip()
+        user_id = str(user_id or "").strip()
+        semana_id = str(semana_id or "").strip()
+        codigo_produto = str(codigo_produto or "").strip()
+        status = str(status or "").strip()
+        if not pedido_id or not user_id or not semana_id or not codigo_produto or not status:
+            return
+
+        atualizado_em = datetime.now().isoformat(timespec="seconds")
+        with self._lock, self._conn:
+            self._conn.execute(
+                """
+                INSERT INTO pedidos_perfil_semanais
+                (pedido_id, user_id, semana_id, codigo_produto, status, dados_json, atualizado_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(pedido_id) DO UPDATE SET
+                    user_id=excluded.user_id,
+                    semana_id=excluded.semana_id,
+                    codigo_produto=excluded.codigo_produto,
+                    status=excluded.status,
+                    dados_json=excluded.dados_json,
+                    atualizado_em=excluded.atualizado_em
+                """,
+                (
+                    pedido_id,
+                    user_id,
+                    semana_id,
+                    codigo_produto,
+                    status,
+                    self._dump(dict(pedido or {})),
+                    atualizado_em,
+                ),
+            )
+
+    def listar_pedidos_perfil_semanais(self, user_id, semana_id: str) -> list[dict]:
+        user_id = str(user_id or "").strip()
+        semana_id = str(semana_id or "").strip()
+        if not user_id or not semana_id:
+            return []
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT pedido_id, codigo_produto, status, dados_json, atualizado_em
+                FROM pedidos_perfil_semanais
+                WHERE user_id = ? AND semana_id = ?
+                ORDER BY atualizado_em DESC, pedido_id DESC
+                """,
+                (user_id, semana_id),
+            ).fetchall()
+
+        pedidos = []
+        for row in rows:
+            pedido = self._load(row["dados_json"])
+            pedido["pedido_id"] = row["pedido_id"]
+            pedido["perfil_codigo_produto"] = row["codigo_produto"]
+            pedido["perfil_status"] = row["status"]
+            pedido["perfil_atualizado_em"] = row["atualizado_em"]
+            pedidos.append(pedido)
+        return pedidos
+
+    def obter_pedido_perfil_semanal(self, pedido_id, user_id, semana_id: str) -> dict | None:
+        pedido_id = str(pedido_id or "").strip()
+        user_id = str(user_id or "").strip()
+        semana_id = str(semana_id or "").strip()
+        if not pedido_id or not user_id or not semana_id:
+            return None
+        with self._lock:
+            row = self._conn.execute(
+                """
+                SELECT pedido_id, codigo_produto, status, dados_json, atualizado_em
+                FROM pedidos_perfil_semanais
+                WHERE pedido_id = ? AND user_id = ? AND semana_id = ?
+                """,
+                (pedido_id, user_id, semana_id),
+            ).fetchone()
+        if not row:
+            return None
+        pedido = self._load(row["dados_json"])
+        pedido["pedido_id"] = row["pedido_id"]
+        pedido["perfil_codigo_produto"] = row["codigo_produto"]
+        pedido["perfil_status"] = row["status"]
+        pedido["perfil_atualizado_em"] = row["atualizado_em"]
+        return pedido
+
+    def limpar_pedidos_perfil_semanais(self, semana_id_atual: str) -> int:
+        semana_id_atual = str(semana_id_atual or "").strip()
+        if not semana_id_atual:
+            return 0
+        with self._lock, self._conn:
+            cursor = self._conn.execute(
+                "DELETE FROM pedidos_perfil_semanais WHERE semana_id <> ?",
+                (semana_id_atual,),
+            )
+        return cursor.rowcount or 0
+
     def _salvar_pedido(self, tabela: str, pedido_id, pedido: dict, commit: bool = True):
         pedido_id = str(pedido_id or (pedido or {}).get("pedido_id") or "").strip()
         if not pedido_id:
@@ -656,6 +781,64 @@ class BotDatabase:
                     datetime.now().isoformat(timespec="seconds"),
                 ),
             )
+
+    def registrar_mensagem_bot(self, chat_id, message_id):
+        chat_id = str(chat_id or "").strip()
+        try:
+            message_id = int(message_id)
+        except (TypeError, ValueError):
+            return
+        if not chat_id or message_id <= 0:
+            return
+        with self._lock, self._conn:
+            self._conn.execute(
+                """
+                INSERT OR IGNORE INTO mensagens_bot (chat_id, message_id, criado_em)
+                VALUES (?, ?, ?)
+                """,
+                (chat_id, message_id, datetime.now().isoformat(timespec="seconds")),
+            )
+
+    def listar_mensagens_bot(self, chat_id) -> list[dict]:
+        chat_id = str(chat_id or "").strip()
+        if not chat_id:
+            return []
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT chat_id, message_id, criado_em
+                FROM mensagens_bot
+                WHERE chat_id = ?
+                ORDER BY message_id ASC
+                """,
+                (chat_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def remover_mensagem_bot(self, chat_id, message_id):
+        chat_id = str(chat_id or "").strip()
+        try:
+            message_id = int(message_id)
+        except (TypeError, ValueError):
+            return
+        if not chat_id or message_id <= 0:
+            return
+        with self._lock, self._conn:
+            self._conn.execute(
+                "DELETE FROM mensagens_bot WHERE chat_id = ? AND message_id = ?",
+                (chat_id, message_id),
+            )
+
+    def limpar_mensagens_bot(self, chat_id) -> int:
+        chat_id = str(chat_id or "").strip()
+        if not chat_id:
+            return 0
+        with self._lock, self._conn:
+            cursor = self._conn.execute(
+                "DELETE FROM mensagens_bot WHERE chat_id = ?",
+                (chat_id,),
+            )
+        return cursor.rowcount or 0
 
     def enfileirar_webhook(self, payment_id: str, payload: dict | None = None, origem: str = "webhook"):
         payment_id = str(payment_id or "").strip()

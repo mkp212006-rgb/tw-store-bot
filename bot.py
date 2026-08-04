@@ -276,8 +276,8 @@ MENSAGEM_MANUTENCAO_BLOQUEIO = (
 )
 MENSAGEM_MANUTENCAO_CONCLUSAO = (
     "✅ Manutenção concluída\n\n"
-    "A manutenção foi finalizada com sucesso e o bot já está liberado para uso novamente.\n\n"
-    "Toque em /start para continuar."
+    "A manutenção foi finalizada e o bot já está liberado novamente.\n\n"
+    "Para continuar, envie /start e inicie o bot novamente."
 )
 
 ARQUIVOS_JSON_RUNTIME = {
@@ -571,6 +571,10 @@ def salvar_pedido_historico(pedido: dict):
     registro["pedido_id"] = pedido_id
     registro["historico_atualizado_em"] = agora_br().strftime("%d/%m/%Y %H:%M:%S")
     DB.salvar_pedido_historico(pedido_id, registro)
+    try:
+        registrar_pedido_perfil_semanal(registro)
+    except Exception as exc:
+        logging.warning("Falha ao atualizar histórico semanal do perfil para %s: %s", pedido_id, exc)
 
 
 def normalizar_id_consulta(texto: str) -> str:
@@ -771,6 +775,38 @@ def ids_usuarios_notificacao() -> list[str]:
         if telegram_id and telegram_id.lstrip("-").isdigit():
             ids = ids_unicos(*ids, telegram_id)
     return ids
+
+
+def referencia_mensagem_bot(mensagem=None, chat_id=None, message_id=None) -> dict | None:
+    if mensagem is not None:
+        if chat_id is None:
+            chat_id = getattr(mensagem, "chat_id", None)
+            if chat_id is None:
+                chat_id = getattr(getattr(mensagem, "chat", None), "id", None)
+        if message_id is None:
+            message_id = getattr(mensagem, "message_id", None)
+
+    chat_id = str(chat_id or "").strip()
+    try:
+        message_id = int(message_id)
+    except (TypeError, ValueError):
+        return None
+    if not chat_id or message_id <= 0:
+        return None
+    return {"chat_id": chat_id, "message_id": message_id}
+
+
+def registrar_mensagem_bot_persistente(mensagem=None, chat_id=None, message_id=None):
+    referencia = referencia_mensagem_bot(mensagem, chat_id, message_id)
+    if not referencia:
+        return
+    try:
+        DB.registrar_mensagem_bot(
+            referencia["chat_id"],
+            referencia["message_id"],
+        )
+    except Exception as exc:
+        logging.warning("Falha ao registrar mensagem enviada pelo bot: %s", exc)
 
 
 def definir_cargo_registro(
@@ -1042,10 +1078,14 @@ async def bloquear_se_manutencao(
         return True
 
     if update.effective_message:
-        await update.effective_message.reply_text(
+        mensagem = await update.effective_message.reply_text(
             MENSAGEM_MANUTENCAO_BLOQUEIO,
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
+        )
+        registrar_mensagem_bot_persistente(
+            mensagem,
+            chat_id=update.effective_chat.id if update.effective_chat else None,
         )
     return True
 
@@ -1586,24 +1626,30 @@ def texto_manutencao_admin() -> str:
         "⚙️ *Notificar Manutenção*\n\n"
         f"*Status atual:* {estado}\n\n"
         "• *Notificar Início:* avisa todos os usuários e bloqueia o bot imediatamente.\n"
-        "• *Notificar Conclusão:* avisa todos os usuários e libera o acesso novamente.\n\n"
+        "• *Notificar Conclusão:* limpa as telas registradas, orienta o uso de /start e libera o acesso novamente.\n\n"
         "Durante a manutenção, somente usuários com cargo *Dono* podem utilizar o bot."
     )
 
 
-async def enviar_notificacao_usuarios(bot, texto: str) -> dict:
+async def enviar_notificacao_usuarios(
+    bot,
+    texto: str,
+    destinatarios: list[str] | None = None,
+) -> dict:
     """Envia o aviso em ritmo seguro e continua mesmo se um chat falhar."""
-    destinatarios = ids_usuarios_notificacao()
+    if destinatarios is None:
+        destinatarios = ids_usuarios_notificacao()
     enviadas = 0
     falhas = []
 
     for indice, telegram_id in enumerate(destinatarios):
         try:
-            await bot.send_message(
+            mensagem = await bot.send_message(
                 chat_id=telegram_id,
                 text=texto,
                 disable_web_page_preview=True,
             )
+            registrar_mensagem_bot_persistente(mensagem, chat_id=telegram_id)
             enviadas += 1
         except Exception as exc:
             falhas.append(telegram_id)
@@ -1624,6 +1670,125 @@ async def enviar_notificacao_usuarios(bot, texto: str) -> dict:
     }
 
 
+def registrar_ultimas_mensagens_contexto(
+    context: ContextTypes.DEFAULT_TYPE,
+    destinatarios: list[str],
+):
+    """Aproveita as últimas telas conhecidas pela persistência do Telegram."""
+    application = getattr(context, "application", None)
+    user_data = getattr(application, "user_data", None)
+    if user_data is None:
+        return
+
+    for telegram_id in destinatarios:
+        chaves = [telegram_id]
+        if str(telegram_id).lstrip("-").isdigit():
+            chaves.insert(0, int(telegram_id))
+        dados = None
+        for chave in chaves:
+            try:
+                dados = user_data.get(chave)
+            except Exception:
+                dados = None
+            if dados is not None:
+                break
+        if not isinstance(dados, dict):
+            continue
+        registrar_mensagem_bot_persistente(
+            chat_id=dados.get("ultima_chat_id_bot") or telegram_id,
+            message_id=dados.get("ultima_mensagem_bot_id"),
+        )
+
+
+def limpar_estados_conversa_manutencao(
+    context: ContextTypes.DEFAULT_TYPE,
+    destinatarios: list[str],
+) -> int:
+    application = getattr(context, "application", None)
+    user_data = getattr(application, "user_data", None)
+    if user_data is None:
+        return 0
+
+    limpos = 0
+    ids_persistencia = []
+    for telegram_id in destinatarios:
+        chaves = [telegram_id]
+        if str(telegram_id).lstrip("-").isdigit():
+            telegram_id_numerico = int(telegram_id)
+            chaves.insert(0, telegram_id_numerico)
+            ids_persistencia.append(telegram_id_numerico)
+        for chave in chaves:
+            try:
+                dados = user_data.get(chave)
+            except Exception:
+                dados = None
+            if isinstance(dados, dict) and dados:
+                dados.clear()
+                limpos += 1
+                break
+
+    marcar = getattr(application, "mark_data_for_update_persistence", None)
+    if callable(marcar) and ids_persistencia:
+        try:
+            marcar(user_ids=ids_persistencia)
+        except Exception as exc:
+            logging.warning("Falha ao marcar estados limpos para persistência: %s", exc)
+    return limpos
+
+
+async def apagar_mensagens_bot_usuarios(bot, destinatarios: list[str]) -> dict:
+    apagadas = 0
+    encontradas = 0
+    falhas = []
+
+    for telegram_id in destinatarios:
+        referencias = DB.listar_mensagens_bot(telegram_id)
+        encontradas += len(referencias)
+        for referencia in referencias:
+            try:
+                await bot.delete_message(
+                    chat_id=referencia["chat_id"],
+                    message_id=referencia["message_id"],
+                )
+                apagadas += 1
+            except Exception as exc:
+                falhas.append(referencia)
+                logging.warning(
+                    "Não foi possível apagar a mensagem %s do chat %s: %s",
+                    referencia["message_id"],
+                    referencia["chat_id"],
+                    exc,
+                )
+            if encontradas > 1:
+                await asyncio.sleep(0.03)
+        DB.limpar_mensagens_bot(telegram_id)
+
+    return {
+        "mensagens_encontradas": encontradas,
+        "mensagens_apagadas": apagadas,
+        "falhas_exclusao": falhas,
+    }
+
+
+async def limpar_conversas_e_notificar_reinicio(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> dict:
+    destinatarios = ids_usuarios_notificacao()
+    executor_id = telegram_id_update(update)
+    clientes_limpeza = [item for item in destinatarios if str(item) != executor_id]
+
+    registrar_ultimas_mensagens_contexto(context, clientes_limpeza)
+    limpeza = await apagar_mensagens_bot_usuarios(context.bot, clientes_limpeza)
+    estados_limpos = limpar_estados_conversa_manutencao(context, clientes_limpeza)
+    envio = await enviar_notificacao_usuarios(
+        context.bot,
+        MENSAGEM_MANUTENCAO_CONCLUSAO,
+        clientes_limpeza,
+    )
+    return {**envio, **limpeza, "estados_limpos": estados_limpos}
+
+
 def registrar_resultado_notificacao_manutencao(tipo: str, resultado: dict):
     estado = carregar_estado_manutencao()
     estado[f"ultima_notificacao_{tipo}"] = {
@@ -1632,6 +1797,15 @@ def registrar_resultado_notificacao_manutencao(tipo: str, resultado: dict):
         "enviadas": int(resultado.get("enviadas") or 0),
         "falhas": len(resultado.get("falhas") or []),
     }
+    if "mensagens_apagadas" in resultado:
+        estado[f"ultima_notificacao_{tipo}"].update(
+            {
+                "mensagens_encontradas": int(resultado.get("mensagens_encontradas") or 0),
+                "mensagens_apagadas": int(resultado.get("mensagens_apagadas") or 0),
+                "falhas_exclusao": len(resultado.get("falhas_exclusao") or []),
+                "estados_limpos": int(resultado.get("estados_limpos") or 0),
+            }
+        )
     DB.salvar_configuracao(CONFIG_MANUTENCAO_CHAVE, estado)
 
 
@@ -1669,6 +1843,13 @@ def resumo_disparo_manutencao(resultado: dict) -> str:
     enviadas = int(resultado.get("enviadas") or 0)
     falhas = len(resultado.get("falhas") or [])
     linhas = [f"📨 *Notificações enviadas:* {enviadas} de {total}"]
+    if "mensagens_apagadas" in resultado:
+        linhas.append(
+            f"🗑️ *Mensagens do bot apagadas:* {int(resultado.get('mensagens_apagadas') or 0)}"
+        )
+        falhas_exclusao = len(resultado.get("falhas_exclusao") or [])
+        if falhas_exclusao:
+            linhas.append(f"⚠️ *Mensagens que não puderam ser apagadas:* {falhas_exclusao}")
     if falhas:
         linhas.append(f"⚠️ *Falhas de envio:* {falhas}")
     return "\n".join(linhas)
@@ -2199,13 +2380,10 @@ async def notificar_conclusao_manutencao(
             (
                 "⏳ *Bot liberado*\n\n"
                 "O acesso já foi restaurado.\n"
-                "Enviando a notificação de conclusão aos usuários registrados..."
+                "Limpando as mensagens anteriores e orientando os clientes a usar /start..."
             ),
         )
-        resultado = await enviar_notificacao_usuarios(
-            context.bot,
-            MENSAGEM_MANUTENCAO_CONCLUSAO,
-        )
+        resultado = await limpar_conversas_e_notificar_reinicio(update, context)
         try:
             registrar_resultado_notificacao_manutencao("conclusao", resultado)
         except Exception as exc:
@@ -2215,7 +2393,7 @@ async def notificar_conclusao_manutencao(
             query,
             (
                 "✅ *Manutenção concluída*\n\n"
-                "O bot está liberado para todos os usuários registrados.\n\n"
+                "O bot está liberado. Os clientes receberam a orientação para iniciar novamente com /start.\n\n"
                 f"{resumo_disparo_manutencao(resultado)}"
             ),
             menu_manutencao_admin(),
@@ -3234,118 +3412,210 @@ def texto_relatorio_diario_admin() -> str:
     )
 
 
-def pedidos_cliente_periodo(user_id: str, inicio: datetime, fim: datetime) -> list[dict]:
-    historico = carregar_pedidos_historico()
-    pedidos = []
+STATUS_PEDIDOS_PERFIL_APROVADOS = {"pagamento_aprovado"}
+STATUS_PEDIDOS_PERFIL_NEGADOS = {
+    "comprovante_reprovado",
+    "pagamento_expirado",
+    "pendente_removido_restart",
+    "bloqueado_sem_reposicao",
+}
+PERFIL_PEDIDOS_POR_PAGINA = 8
 
-    for pedido in historico.values():
-        if str(pedido.get("status") or "") != "pagamento_aprovado":
-            continue
-        if str(pedido.get("user_id") or "") != str(user_id):
-            continue
 
-        data_pedido = parse_data_br(
-            pedido.get("aprovado_em")
-            or pedido.get("historico_atualizado_em")
-            or pedido.get("criado_em")
+def status_pedido_perfil(pedido: dict) -> str | None:
+    status = str((pedido or {}).get("status") or "").strip().lower()
+    if status in STATUS_PEDIDOS_PERFIL_APROVADOS:
+        return "aprovado"
+    if status in STATUS_PEDIDOS_PERFIL_NEGADOS:
+        return "negado"
+    return None
+
+
+def data_pedido_perfil(pedido: dict) -> datetime | None:
+    status = status_pedido_perfil(pedido)
+    if status == "aprovado":
+        campos = (
+            "perfil_data_em",
+            "aprovado_em",
+            "historico_atualizado_em",
+            "criado_em",
         )
-        if not data_pedido or data_pedido < inicio or data_pedido >= fim:
-            continue
+    else:
+        campos = (
+            "perfil_data_em",
+            "reprovado_em",
+            "expirado_em",
+            "removido_de_pendentes_em",
+            "bloqueado_em",
+            "historico_atualizado_em",
+            "criado_em",
+        )
+    for campo in campos:
+        data = parse_data_br((pedido or {}).get(campo))
+        if data:
+            return data
+    return None
 
-        pedido_copia = dict(pedido)
-        pedido_copia["_data_relatorio"] = data_pedido
-        pedidos.append(pedido_copia)
 
-    pedidos.sort(key=lambda item: item.get("_data_relatorio") or inicio, reverse=True)
+def codigo_produto_pedido(pedido: dict) -> str:
+    plataforma_id = (pedido or {}).get("plataforma_order_id")
+    if pedido_tem_id_plataforma(plataforma_id):
+        return str(plataforma_id)
+    return str((pedido or {}).get("pedido_id") or "Não informado")
+
+
+def limpar_historico_perfil_semana_atual() -> int:
+    return DB.limpar_pedidos_perfil_semanais(semana_info()["id"])
+
+
+def registrar_pedido_perfil_semanal(pedido: dict) -> bool:
+    status = status_pedido_perfil(pedido)
+    pedido_id = str((pedido or {}).get("pedido_id") or "").strip()
+    user_id = str((pedido or {}).get("user_id") or "").strip()
+    if not status or not pedido_id or not user_id:
+        return False
+
+    data_pedido = data_pedido_perfil(pedido) or agora_br()
+    semana_pedido = semana_info(data_pedido)["id"]
+    semana_atual = semana_info()["id"]
+    DB.limpar_pedidos_perfil_semanais(semana_atual)
+    if semana_pedido != semana_atual:
+        return False
+
+    registro = dict(pedido)
+    registro["perfil_semana_id"] = semana_pedido
+    registro["perfil_codigo_produto"] = codigo_produto_pedido(registro)
+    registro["perfil_status"] = status
+    registro["perfil_data_em"] = data_pedido.strftime("%d/%m/%Y %H:%M:%S")
+    DB.salvar_pedido_perfil_semanal(
+        pedido_id,
+        user_id,
+        semana_pedido,
+        registro["perfil_codigo_produto"],
+        status,
+        registro,
+    )
+    return True
+
+
+def sincronizar_historico_perfil_semana_atual() -> int:
+    limpar_historico_perfil_semana_atual()
+    sincronizados = 0
+    for pedido in carregar_pedidos_historico().values():
+        if registrar_pedido_perfil_semanal(pedido):
+            sincronizados += 1
+    return sincronizados
+
+
+def pedidos_perfil_vendedor(user_id) -> list[dict]:
+    limpar_historico_perfil_semana_atual()
+    pedidos = DB.listar_pedidos_perfil_semanais(str(user_id or ""), semana_info()["id"])
+    data_minima = datetime.min.replace(tzinfo=TZ_BR)
+    pedidos.sort(key=lambda pedido: data_pedido_perfil(pedido) or data_minima, reverse=True)
     return pedidos
 
 
-def bloco_pedido_relatorio_cliente(pedido: dict) -> str:
-    data_pedido = pedido.get("_data_relatorio")
-    if isinstance(data_pedido, datetime):
-        data_texto = data_pedido.strftime("%d/%m/%Y %H:%M:%S")
-    else:
-        data_texto = pedido.get("aprovado_em") or pedido.get("historico_atualizado_em") or "Não informado"
-
-    pedido_plataforma = pedido.get("plataforma_order_id") or pedido.get("pedido_plataforma") or "Não informado"
-
+def texto_perfil_vendedor(update: Update) -> str:
+    user = update.effective_user
+    user_id = str(user.id) if user else ""
+    registro = obter_usuario_registrado(user_id) or {}
+    nome = registro.get("nome_telegram") or (user.full_name if user else "Vendedor")
+    cargo = cargo_usuario_id(user_id, registro)
+    saldo_centavos = saldo_usuario_centavos(user_id)
+    hoje = agora_br().date()
+    pedidos_hoje = 0
+    for pedido in pedidos_perfil_vendedor(user_id):
+        data_pedido = data_pedido_perfil(pedido)
+        if data_pedido and data_pedido.date() == hoje:
+            pedidos_hoje += 1
     return (
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        f"🧾 *Pedido:* `{md(pedido.get('pedido_id', ''))}`\n"
-        f"📦 *Serviço:* {md(pedido.get('servico', 'Não informado'))}\n"
-        f"🗂️ *Catálogo:* {md(pedido.get('catalogo', 'Não informado'))}\n"
-        f"💰 *Valor:* R$ {md(centavos_para_moeda(valor_para_centavos(pedido.get('valor', '0'))))}\n"
-        f"🌐 *Pedido plataforma:* {md(pedido_plataforma)}\n"
-        f"🗓️ *Realizado em:* {md(data_texto)}"
+        f"👤 *Vendedor:* {md(nome)}\n"
+        f"🪪 *Cargo:* {md(nome_cargo(cargo))}\n"
+        f"💳 *Saldo disponível:* R$ {md(centavos_para_moeda(saldo_centavos))}\n"
+        f"🧾 *Pedidos realizados hoje:* {pedidos_hoje}"
     )
 
 
-def texto_my_profile_cliente(update: Update) -> str:
-    user = update.effective_user
-    user_id = str(user.id) if user else ""
-    nome = user.full_name if user else "Cliente"
-    username = f"@{user.username}" if user and user.username else "Sem username"
-    registro = obter_usuario_registrado(user_id)
-    cargo = cargo_usuario_id(user_id, registro)
-    saldo_centavos = saldo_usuario_centavos(user_id)
+def menu_perfil_vendedor() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([[btn("🗒️ Meus Pedidos", "perfil:pedidos:0")]])
 
-    agora = agora_br()
-    inicio = datetime.combine(agora.date(), time.min, tzinfo=TZ_BR)
-    fim = inicio + timedelta(days=1)
-    pedidos = pedidos_cliente_periodo(user_id, inicio, fim)
 
-    total_centavos = sum(valor_para_centavos(pedido.get("valor", "0")) for pedido in pedidos)
+def pagina_perfil_segura(pagina) -> int:
+    try:
+        return max(0, int(pagina))
+    except (TypeError, ValueError):
+        return 0
 
-    linhas = [
-        "👤 *Meu Perfil*",
-        "",
-        "📆 *Relatório Diário*",
-        f"🗓️ *Data:* {md(inicio.strftime('%d/%m/%Y'))}",
-        f"👤 *Cliente:* {md(nome)}",
-        f"📲 *Telegram:* {md(username)}",
-        f"🆔 *Telegram ID:* `{md(user_id)}`",
-        f"🪪 *Cargo:* {md(nome_cargo(cargo))}",
-        f"💳 *Saldo disponível:* R$ {md(centavos_para_moeda(saldo_centavos))}",
-        f"💰 *Total usado hoje:* R$ {md(centavos_para_moeda(total_centavos))}",
-        f"🧾 *Pedidos realizados hoje:* {len(pedidos)}",
-        "🔄 Reinicia todos os dias após 00:00.",
-    ]
 
-    if cargo == CARGO_TESTER:
-        totais_semana = carregar_totais_semanais()
-        cliente_semana = (totais_semana.get("clientes") or {}).get(user_id) or {}
-        total_semana = int(cliente_semana.get("total_centavos") or 0)
-        restante = max(0, META_SEMANAL_TESTER_CENTAVOS - total_semana)
-        linhas.extend(
-            [
-                "",
-                "🎯 *Meta semanal de Tester*",
-                f"• Realizado: R$ {md(centavos_para_moeda(total_semana))}",
-                f"• Meta: R$ {md(centavos_para_moeda(META_SEMANAL_TESTER_CENTAVOS))}",
-                f"• Falta: R$ {md(centavos_para_moeda(restante))}",
-                f"• Período: {md(totais_semana.get('inicio', ''))} até {md(totais_semana.get('fim', ''))}",
-            ]
-        )
+def pagina_pedidos_perfil(pedidos: list[dict], pagina=0) -> tuple[list[dict], int, int]:
+    total_paginas = max(1, math.ceil(len(pedidos) / PERFIL_PEDIDOS_POR_PAGINA))
+    pagina_atual = min(pagina_perfil_segura(pagina), total_paginas - 1)
+    inicio = pagina_atual * PERFIL_PEDIDOS_POR_PAGINA
+    fim = inicio + PERFIL_PEDIDOS_POR_PAGINA
+    return pedidos[inicio:fim], pagina_atual, total_paginas
 
+
+def texto_meus_pedidos_vendedor(pedidos: list[dict], pagina=0) -> str:
+    _, pagina_atual, total_paginas = pagina_pedidos_perfil(pedidos, pagina)
+    info = semana_info()
     if not pedidos:
-        linhas.extend(["", "Você ainda não tem pedidos realizados hoje."])
-        return "\n".join(linhas)
-
-    linhas.extend(["", "*Seus pedidos realizados hoje:*"])
-    for pedido in pedidos[:12]:
-        linhas.append(bloco_pedido_relatorio_cliente(pedido))
-
-    if len(pedidos) > 12:
-        linhas.append(f"\nMostrando 12 de {len(pedidos)} pedidos realizados hoje.")
-
-    texto = "\n\n".join(linhas)
-    if len(texto) > 3900:
-        texto = texto[:3850].rsplit("\n", 1)[0] + "\n\nRelatório muito grande. Mostrando apenas os primeiros registros."
-    return texto
+        resumo = "Nenhum pedido realizado nesta semana."
+    else:
+        resumo = "Toque em um pedido para consultar os detalhes."
+    return (
+        "🗒️ *Meus Pedidos*\n\n"
+        f"📅 *Semana:* {md(info['inicio'])} até {md(info['fim'])}\n"
+        f"🧾 *Total:* {len(pedidos)}\n"
+        f"📄 *Página:* {pagina_atual + 1}/{total_paginas}\n\n"
+        f"{resumo}"
+    )
 
 
-def menu_my_profile_cliente() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([[btn("⬅️ Voltar", "voltar:inicio")]])
+def menu_meus_pedidos_vendedor(pedidos: list[dict], pagina=0) -> InlineKeyboardMarkup:
+    pedidos_pagina, pagina_atual, total_paginas = pagina_pedidos_perfil(pedidos, pagina)
+    keyboard = []
+    for pedido in pedidos_pagina:
+        pedido_id = str(pedido.get("pedido_id") or "")
+        codigo = codigo_produto_pedido(pedido)
+        keyboard.append([
+            btn(
+                f'🔖 ID: "{codigo}"',
+                f"perfil:pedido:{pedido_id}:{pagina_atual}",
+            )
+        ])
+
+    navegacao = []
+    if pagina_atual > 0:
+        navegacao.append(btn("⬅️", f"perfil:pedidos:{pagina_atual - 1}"))
+    if pagina_atual + 1 < total_paginas:
+        navegacao.append(btn("➡️", f"perfil:pedidos:{pagina_atual + 1}"))
+    if navegacao:
+        keyboard.append(navegacao)
+    keyboard.append([btn("⬅️ Voltar ao perfil", "perfil:inicio")])
+    return InlineKeyboardMarkup(keyboard)
+
+
+def texto_pedido_perfil_vendedor(pedido: dict) -> str:
+    codigo = codigo_produto_pedido(pedido)
+    status = status_pedido_perfil(pedido) or str(pedido.get("perfil_status") or "negado")
+    quantidade = pedido.get("plataforma_quantidade") or pedido.get("quantidade") or "Não informado"
+    return (
+        f"*Tw Store - Pedido ID:{md(codigo)} {md(status)}*\n\n"
+        "━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📦 *Produto:* {md(pedido.get('servico') or 'Não informado')}\n"
+        f"🔖 *Código/ID:* \"{md(codigo)}\"\n"
+        f"📁 *Categoria:* {md(pedido.get('catalogo') or 'Não informado')}\n"
+        f"🗂️ *Quantidade:* {md(quantidade)}\n"
+        f"🔗 *Link:* {md(pedido.get('link') or 'Não informado')}\n\n"
+        "━━━━━━━━━━━━━━━━━━━━"
+    )
+
+
+def menu_pedido_perfil_vendedor(pagina=0) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [btn("⬅️ Voltar aos pedidos", f"perfil:pedidos:{pagina_perfil_segura(pagina)}")],
+        [btn("👤 Voltar ao perfil", "perfil:inicio")],
+    ])
 
 
 async def enviar_resumo_semanal_admin(bot, dados: dict):
@@ -3488,6 +3758,7 @@ async def fechar_semana_se_necessario(bot):
     async with _FECHAMENTO_SEMANAL_LOCK:
         dados = carregar_totais_semanais()
         semana_atual = semana_info()
+        DB.limpar_pedidos_perfil_semanais(semana_atual["id"])
 
         if dados.get("semana_id") != semana_atual["id"]:
             await enviar_resumo_semanal_admin(bot, dados)
@@ -4212,16 +4483,11 @@ def pedido_pago_confirmado_local(pedido: dict) -> bool:
 
 
 def recuperar_pedido_debitado_no_startup(pedido: dict):
-    """Avisa equipe e cliente quando um débito foi salvo antes de uma queda."""
+    """Avisa o cliente quando um débito foi salvo antes de uma queda."""
     if str(pedido.get("forma_pagamento") or "") != "saldo":
         return
     try:
-        total_semanal = registrar_pedido_semanal(pedido)
-        enviar_relatorio_admin_documento_sync(
-            pedido,
-            total_semanal,
-            titulo="PEDIDO COM SALDO RECUPERADO APÓS REINÍCIO — TW STORE",
-        )
+        registrar_pedido_semanal(pedido)
         enviar_telegram_sync(
             pedido.get("user_id"),
             texto_final_pedido(pedido),
@@ -4728,61 +4994,8 @@ def enviar_relatorio_admin_documento_sync(
     total_semanal_cliente: str,
     titulo: str = "NOVO PEDIDO PAGO — TW STORE",
 ) -> bool:
-    """Envia o relatório individual de pedido aprovado somente ao Admin 1."""
-    if not pedido:
-        return False
-
-    if pedido.get("relatorio_admin_enviado_em"):
-        return True
-
-    admins = ids_admin_relatorio_pedido(pedido)
-    if not admins:
-        logging.error(
-            "Relatório do pedido %s não enviado: configure ADMIN_CHAT_ID com o ID do Admin 1.",
-            pedido.get("pedido_id"),
-        )
-        return False
-
-    admin_chat_id = admins[0]
-    imagem = gerar_imagem_relatorio_admin(
-        pedido,
-        total_semanal_cliente,
-        titulo="RELATÓRIO DE VENDA APROVADA",
-    )
-
-    enviado = False
-    if imagem is not None:
-        enviado = enviar_documento_telegram_sync(
-            admin_chat_id,
-            imagem,
-            caption=caption_relatorio_admin(pedido, titulo),
-        )
-
-    # Se o PNG não puder ser gerado ou enviado, o Admin 1 ainda recebe o
-    # relatório completo em texto para que nenhum pedido aprovado fique sem aviso.
-    if not enviado:
-        enviado = enviar_telegram_sync(
-            admin_chat_id,
-            montar_relatorio_admin_texto(pedido, total_semanal_cliente, titulo),
-        )
-
-    if not enviado:
-        logging.error(
-            "Falha ao enviar o relatório do pedido %s ao Admin 1 (%s).",
-            pedido.get("pedido_id"),
-            admin_chat_id,
-        )
-        return False
-
-    pedido["relatorio_admin_enviado_em"] = agora_br().strftime("%d/%m/%Y %H:%M:%S")
-    pedido["relatorio_admin_chat_id"] = str(admin_chat_id)
-    salvar_pedido_historico(pedido)
-    logging.info(
-        "Relatório do pedido %s enviado ao Admin 1 (%s) pelo Telegram.",
-        pedido.get("pedido_id"),
-        admin_chat_id,
-    )
-    return True
+    """Mantido como trava de compatibilidade; relatórios individuais estão desativados."""
+    return False
 
 
 def montar_relatorio_admin_sync(pedido: dict, total_semanal_cliente: str | None = None, titulo: str = "NOVO PEDIDO PAGO — TW STORE") -> str:
@@ -5093,17 +5306,9 @@ def processar_pagamento_aprovado_sync(pedido: dict, pagamento: dict, origem: str
         marcar_pagamento_processado(payment_id, pedido)
         remover_pedido_pendente(str(pedido.get("pedido_id") or ""))
 
-        total_semanal_cliente = registrar_pedido_semanal(pedido)
-        titulo_relatorio = (
-            "PEDIDO EM REVISÃO MANUAL — TW STORE"
-            if status_envio_plataforma(pedido) == "revisao_manual"
-            else "NOVO PEDIDO PAGO — TW STORE"
-        )
-        enviar_relatorio_admin_documento_sync(
-            pedido,
-            total_semanal_cliente,
-            titulo=titulo_relatorio,
-        )
+        # Mantém a contagem para o fechamento semanal, sem notificar o admin
+        # individualmente a cada pedido aprovado.
+        registrar_pedido_semanal(pedido)
 
         teclado_menu = {"inline_keyboard": [[{"text": "🏠 Menu inicial", "callback_data": "voltar:inicio"}]]}
         enviar_telegram_sync(
@@ -5632,6 +5837,8 @@ def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
     saldo_info = consultar_saldo_plataforma_sync()
     saldo = float(saldo_info["saldo"])
     moeda = str(saldo_info.get("moeda") or "").strip()
+    pedido["plataforma_saldo_disponivel"] = saldo
+    pedido["plataforma_moeda"] = moeda
 
     estimativa = estimar_custo_pedido_plataforma_sync(pedido)
     custo = estimativa.get("custo_estimado")
@@ -5640,6 +5847,8 @@ def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
 
     if custo is not None:
         necessario = float(custo) + float(MARGEM_SALDO_PLATAFORMA)
+        pedido["plataforma_custo_estimado"] = float(custo)
+        pedido["plataforma_valor_necessario"] = necessario
         if saldo + 0.000001 < necessario:
             detalhe = (
                 "Saldo insuficiente na plataforma antes de liberar o pedido. "
@@ -5671,44 +5880,107 @@ def verificar_reposicao_antes_pagamento_sync(pedido: dict) -> tuple[bool, str]:
 
 def mensagem_cliente_sem_reposicao() -> str:
     return (
-        "⚠️ *Serviço temporariamente sem reposição de estoque.*\n\n"
+        "📦 *Produto sem estoque*\n\n"
+        "━━━━━━━━━━━━━━━━━━━━\n\n"
         "No momento não consigo liberar esse pedido automaticamente. "
         "Tente novamente mais tarde ou fale com o atendimento.\n\n"
-        "✅ Nenhum valor foi descontado do seu saldo."
+        "ℹ️ Nenhum valor foi descontado do seu saldo.\n\n"
+        "━━━━━━━━━━━━━━━━━━━━"
     )
 
 
-def texto_admin_bloqueio_sem_reposicao(pedido: dict, detalhe: str) -> str:
-    username = username_relatorio(pedido)
+def menu_cliente_sem_reposicao(pedido: dict) -> InlineKeyboardMarkup:
+    pedido_id = str(pedido.get("pedido_id") or gerar_pedido_id())
+    pedido["pedido_id"] = pedido_id
+    return InlineKeyboardMarkup(
+        [
+            [btn("📦 Solcitar Reposição", f"estoque:solicitar:{pedido_id}")],
+            [btn("🏠 Menu inicial", "voltar:inicio")],
+        ]
+    )
+
+
+def valor_necessario_estoque_texto(pedido: dict) -> str:
+    valor = numero_decimal_plataforma(pedido.get("plataforma_valor_necessario"))
+    if valor is None:
+        return "Não informado"
+
+    valor_formatado = f"{float(valor):.2f}".replace(".", ",")
+    moeda = str(pedido.get("plataforma_moeda") or "").strip().upper()
+    if moeda == "BRL":
+        return f"R$ {valor_formatado}"
+    if moeda == "USD":
+        return f"US$ {valor_formatado}"
+    return f"{valor_formatado} {moeda}".strip()
+
+
+def texto_admin_bloqueio_sem_reposicao(pedido: dict) -> str:
     return (
-        "🚫 *PEDIDO BLOQUEADO ANTES DO DÉBITO*\n\n"
-        "O cliente tentou iniciar um pedido, mas o bot não descontou a carteira porque detectou falta de saldo/reposição na plataforma.\n\n"
-        f"🆔 *Pedido:* `{md(pedido.get('pedido_id', ''))}`\n"
-        f"🗂️ *Catálogo:* {md(pedido.get('catalogo', ''))}\n"
-        f"📌 *Serviço:* {md(pedido.get('servico', ''))}\n"
-        f"🔢 *Quantidade:* {md(pedido.get('quantidade', ''))}\n"
-        f"💰 *Valor que seria cobrado:* R$ {md(pedido.get('valor', ''))}\n"
-        f"🔗 *Link/@:* {md(pedido.get('link', ''))}\n\n"
-        f"👤 *Cliente:* {md(pedido.get('usuario', 'Cliente'))}\n"
-        f"📱 *Telegram:* {md(username)}\n"
-        f"🆔 *ID Telegram:* `{pedido.get('user_id', '')}`\n\n"
-        f"⚠️ *Detalhe interno:* {md(limpar_erro_api(detalhe))}\n\n"
-        "Reponha saldo na plataforma ou troque o Service ID do serviço no catálogo."
+        "📦 *Pedido Reposição de Estoque.*\n\n"
+        "━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"📦 *Produto:* {md(pedido.get('servico') or 'Não informado')}\n"
+        f"📁 *Categoria:* {md(pedido.get('catalogo') or 'Não informado')}\n"
+        f"🗂️ *Quantidade:* {md(pedido.get('quantidade') or 'Não informado')}\n"
+        f"💲 *Cobrado:* R$ {md(pedido.get('valor') or '0,00')}\n"
+        f"💱 *Valor Necessário:* {md(valor_necessario_estoque_texto(pedido))}\n\n"
+        "━━━━━━━━━━━━━━━━━━━━"
     )
 
 
-async def avisar_admin_bloqueio_sem_reposicao(context: ContextTypes.DEFAULT_TYPE, pedido: dict, detalhe: str):
+async def avisar_admin_bloqueio_sem_reposicao(context: ContextTypes.DEFAULT_TYPE, pedido: dict) -> bool:
     if not ADMIN_CHAT_ID:
-        return
+        return False
     try:
         await context.bot.send_message(
             chat_id=ADMIN_CHAT_ID,
-            text=texto_admin_bloqueio_sem_reposicao(pedido, detalhe),
+            text=texto_admin_bloqueio_sem_reposicao(pedido),
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
         )
+        return True
     except Exception as exc:
         logging.warning("Falha ao avisar admin sobre bloqueio sem reposição: %s", exc)
+        return False
+
+
+async def solicitar_reposicao_estoque_cliente(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    pedido_id: str,
+):
+    query = update.callback_query
+    pedido, _origem = buscar_pedido_local_por_id(pedido_id)
+
+    if not pedido or str(pedido.get("status") or "") != "bloqueado_sem_reposicao":
+        await query.answer("Este pedido não está disponível para reposição.", show_alert=True)
+        return
+
+    if str(pedido.get("user_id") or "") != telegram_id_update(update):
+        await query.answer("Este pedido pertence a outro vendedor.", show_alert=True)
+        return
+
+    if pedido.get("reposicao_estoque_solicitada_em"):
+        await query.answer("A reposição deste produto já foi solicitada.", show_alert=True)
+        return
+
+    if not await avisar_admin_bloqueio_sem_reposicao(context, pedido):
+        await query.answer(
+            "Não foi possível enviar a solicitação agora. Tente novamente mais tarde.",
+            show_alert=True,
+        )
+        return
+
+    pedido["reposicao_estoque_solicitada_em"] = agora_br().strftime("%d/%m/%Y %H:%M:%S")
+    pedido["reposicao_estoque_solicitada_por"] = telegram_id_update(update)
+    salvar_pedido_historico(pedido)
+
+    await query.answer("Solicitação de reposição enviada ao administrador.", show_alert=True)
+    try:
+        await query.edit_message_reply_markup(
+            reply_markup=InlineKeyboardMarkup([[btn("🏠 Menu inicial", "voltar:inicio")]])
+        )
+    except Exception as exc:
+        logging.warning("Não foi possível remover o botão de reposição já utilizado: %s", exc)
 
 
 async def verificar_reposicao_antes_pagamento(update: Update, context: ContextTypes.DEFAULT_TYPE, pedido: dict) -> bool:
@@ -5728,16 +6000,18 @@ async def verificar_reposicao_antes_pagamento(update: Update, context: ContextTy
         pedido["ultima_verificacao_reposicao"] = detalhe
         return True
 
+    pedido_id = str(pedido.get("pedido_id") or gerar_pedido_id())
+    pedido["pedido_id"] = pedido_id
     pedido["status"] = "bloqueado_sem_reposicao"
     pedido["bloqueado_em"] = agora_br().strftime("%d/%m/%Y %H:%M:%S")
     pedido["motivo_bloqueio"] = detalhe
+    salvar_pedido_historico(pedido)
 
-    await avisar_admin_bloqueio_sem_reposicao(context, pedido, detalhe)
     await enviar_texto_sequencial(
         update,
         context,
         mensagem_cliente_sem_reposicao(),
-        InlineKeyboardMarkup([[btn("🏠 Menu inicial", "voltar:inicio")]]),
+        menu_cliente_sem_reposicao(pedido),
     )
     return False
 
@@ -6082,7 +6356,6 @@ def btn(texto: str, data: str) -> InlineKeyboardButton:
 
 def menu_principal() -> InlineKeyboardMarkup:
     keyboard = [
-        [btn("👤 Meu Perfil", "perfil:meu")],
         [btn("💳 consultar saldo", "saldo:consultar")],
         [btn("📖 Catálogo de Serviços", "menu:catalogo")],
         [btn("🔎 Consultar Pedido", "pedido:consultar")],
@@ -6739,8 +7012,15 @@ def gerar_imagem_pagamento_tiktok(pedido: dict) -> BytesIO | None:
 def guardar_mensagem_bot(context: ContextTypes.DEFAULT_TYPE, mensagem):
     if not mensagem:
         return
-    context.user_data["ultima_chat_id_bot"] = mensagem.chat_id
-    context.user_data["ultima_mensagem_bot_id"] = mensagem.message_id
+    referencia = referencia_mensagem_bot(mensagem)
+    if not referencia:
+        return
+    context.user_data["ultima_chat_id_bot"] = referencia["chat_id"]
+    context.user_data["ultima_mensagem_bot_id"] = referencia["message_id"]
+    registrar_mensagem_bot_persistente(
+        chat_id=referencia["chat_id"],
+        message_id=referencia["message_id"],
+    )
 
 
 async def apagar_ultima_mensagem_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -6749,11 +7029,18 @@ async def apagar_ultima_mensagem_bot(update: Update, context: ContextTypes.DEFAU
     if not chat_id or not message_id:
         return
 
+    apagada = False
     try:
         await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
+        apagada = True
     except Exception:
         pass
     finally:
+        if apagada:
+            try:
+                DB.remover_mensagem_bot(chat_id, message_id)
+            except Exception:
+                pass
         context.user_data.pop("ultima_mensagem_bot_id", None)
         context.user_data.pop("ultima_chat_id_bot", None)
 
@@ -6929,7 +7216,8 @@ async def processar_pedido_com_saldo_cliente(
 
     salvar_pedido_historico(pedido)
     remover_pedido_pendente(str(pedido.get("pedido_id") or ""))
-    await enviar_relatorio_admin(update, context, pedido)
+    await fechar_semana_se_necessario(context.bot)
+    registrar_pedido_semanal(pedido)
     await enviar_texto_sequencial(
         update,
         context,
@@ -7068,6 +7356,7 @@ async def safe_edit_or_reply(update: Update, text: str, reply_markup=None, parse
                 await query.message.delete()
             except Exception:
                 pass
+            registrar_mensagem_bot_persistente(mensagem)
             return mensagem
         except Exception:
             mensagem = await query.message.reply_text(
@@ -7080,14 +7369,20 @@ async def safe_edit_or_reply(update: Update, text: str, reply_markup=None, parse
                 await query.message.delete()
             except Exception:
                 pass
+            registrar_mensagem_bot_persistente(mensagem)
             return mensagem
     else:
-        return await update.message.reply_text(
+        mensagem = await update.message.reply_text(
             text=text,
             parse_mode=parse_mode,
             reply_markup=reply_markup,
             disable_web_page_preview=True,
         )
+        registrar_mensagem_bot_persistente(
+            mensagem,
+            chat_id=update.effective_chat.id if update.effective_chat else None,
+        )
+        return mensagem
 
 
 async def enviar_catalogo_cliente(
@@ -8306,6 +8601,69 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await enviar_inicio_cliente(update, context)
 
 
+async def perfil_vendedor(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+    if await bloquear_se_manutencao(update, context):
+        return
+    if not registro_aprovado(update):
+        await enviar_acesso_bloqueado(update, context)
+        return
+    sincronizar_historico_perfil_semana_atual()
+    await safe_edit_or_reply(
+        update,
+        texto_perfil_vendedor(update),
+        menu_perfil_vendedor(),
+    )
+
+
+async def mostrar_perfil_vendedor(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
+    sincronizar_historico_perfil_semana_atual()
+    await safe_edit_or_reply(
+        update,
+        texto_perfil_vendedor(update),
+        menu_perfil_vendedor(),
+    )
+
+
+async def mostrar_meus_pedidos_vendedor(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    pagina=0,
+):
+    context.user_data.clear()
+    pedidos = pedidos_perfil_vendedor(telegram_id_update(update))
+    await safe_edit_or_reply(
+        update,
+        texto_meus_pedidos_vendedor(pedidos, pagina),
+        menu_meus_pedidos_vendedor(pedidos, pagina),
+    )
+
+
+async def mostrar_pedido_perfil_vendedor(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+    pedido_id: str,
+    pagina=0,
+):
+    pedido = DB.obter_pedido_perfil_semanal(
+        normalizar_id_consulta(pedido_id),
+        telegram_id_update(update),
+        semana_info()["id"],
+    )
+    if not pedido:
+        await update.callback_query.answer(
+            "Pedido não encontrado no seu histórico desta semana.",
+            show_alert=True,
+        )
+        return
+    await safe_edit_or_reply(
+        update,
+        texto_pedido_perfil_vendedor(pedido),
+        menu_pedido_perfil_vendedor(pagina),
+    )
+
+
 async def processar_valor_recarga_saldo(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,
@@ -8492,20 +8850,31 @@ def texto_final_pedido(pedido: dict) -> str:
 
     if pedido.get("catalogo") in CATALOGOS_COM_ENVIO_API:
         if pedido.get("plataforma_api_status") == "enviado":
+            saldo_restante = "Não informado"
+            if pedido.get("saldo_apos_centavos") is not None:
+                saldo_restante = (
+                    f"R$ {centavos_para_moeda(int(pedido.get('saldo_apos_centavos') or 0))}"
+                )
+            quantidade_vendida = (
+                pedido.get("plataforma_quantidade")
+                or pedido.get("quantidade")
+                or "Não informado"
+            )
             return (
-                "✅ *Etapa 3 de 3 — Pedido aprovado*\n\n"
-                f"{mensagem_confirmacao}\n\n"
-                f"📦 *Produto:* {md(pedido.get('catalogo', ''))}\n"
-                f"📌 *Serviço:* {md(pedido.get('servico', ''))}\n"
-                f"🔢 *Quantidade:* {md(pedido.get('quantidade', ''))}\n"
-                f"{detalhe_saldo}"
-                f"🚀 *ID na plataforma:* `{md(pedido.get('plataforma_order_id', 'Não informado'))}`\n\n"
-                "📌 *Status do pedido*\n"
-                f"{status_confirmacao}\n"
-                "• Pedido enviado para a plataforma\n"
-                "• Processamento iniciado automaticamente\n\n"
-                "⏳ O tempo de conclusão pode variar conforme o volume do serviço.\n\n"
-                "🎫 Precisa de ajuda? Fale com o suporte."
+                "✅ *Etapa 3 de 3 — Relatório do Produto.*\n\n"
+                "━━━━━━━━━━━━━━━━━\n\n"
+                f"📦 *Produto:* {md(pedido.get('servico') or 'Não informado')}\n"
+                f"🔖 *Código/ID:* \"{md(pedido.get('plataforma_order_id') or 'Não informado')}\"\n"
+                f"📁 *Categoria:* {md(pedido.get('catalogo') or 'Não informado')}\n"
+                "🏢 *Fornecedor:* Tw Store\n\n"
+                "━━━━━━━━━━━━━━━━━\n\n"
+                "📦 *ESTOQUE E VENDAS*\n\n"
+                f"🔹 *Saldo Restante:* {md(saldo_restante)}\n"
+                f"🔹 *Quantidade vendida:* {md(quantidade_vendida)}\n\n"
+                "━━━━━━━━━━━━━━━━━\n\n"
+                "⏳ O tempo de conclusão pode variar conforme a demanda de pedidos.\n\n"
+                "🎫 Precisa de ajuda? Fale com o suporte.\n\n"
+                "━━━━━━━━━━━━━━━━━"
             )
 
         erro = pedido.get("plataforma_api_erro") or "Erro não informado."
@@ -8578,7 +8947,8 @@ async def finalizar_pedido_confirmado(update: Update, context: ContextTypes.DEFA
         await enviar_pedido_para_plataforma(pedido)
 
     salvar_pedido_historico(pedido)
-    await enviar_relatorio_admin(update, context, pedido)
+    await fechar_semana_se_necessario(context.bot)
+    registrar_pedido_semanal(pedido)
     await enviar_texto_sequencial(
         update,
         context,
@@ -8713,7 +9083,8 @@ async def aprovar_pagamento_admin(update: Update, context: ContextTypes.DEFAULT_
     marcar_comprovante_usado(file_unique_id, pedido)
     remover_pedido_pendente(pedido_id)
 
-    await enviar_relatorio_admin(update, context, pedido)
+    await fechar_semana_se_necessario(context.bot)
+    registrar_pedido_semanal(pedido)
 
     try:
         await context.bot.send_message(
@@ -9145,6 +9516,11 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("Faça o cadastro e aguarde a aprovação para usar o bot.", show_alert=True)
         return
 
+    if data.startswith("estoque:solicitar:"):
+        pedido_id = data.split(":", 2)[2]
+        await solicitar_reposicao_estoque_cliente(update, context, pedido_id)
+        return
+
     if data == "saldo:consultar":
         context.user_data.pop("adicionando_saldo", None)
         context.user_data.pop("consulta_pedido", None)
@@ -9209,13 +9585,22 @@ async def callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await enviar_inicio_cliente(update, context)
         return
 
-    if data == "perfil:meu":
-        context.user_data.clear()
-        await safe_edit_or_reply(
-            update,
-            texto_my_profile_cliente(update),
-            menu_my_profile_cliente(),
-        )
+    if data == "perfil:inicio":
+        await mostrar_perfil_vendedor(update, context)
+        return
+
+    if data.startswith("perfil:pedidos:"):
+        pagina = data.rsplit(":", 1)[1]
+        await mostrar_meus_pedidos_vendedor(update, context, pagina)
+        return
+
+    if data.startswith("perfil:pedido:"):
+        payload = data[len("perfil:pedido:"):]
+        pedido_id, separador, pagina = payload.rpartition(":")
+        if not separador:
+            await query.answer("Pedido inválido.", show_alert=True)
+            return
+        await mostrar_pedido_perfil_vendedor(update, context, pedido_id, pagina)
         return
 
     if data == "pedido:consultar":
@@ -10006,30 +10391,11 @@ async def receber_comprovante(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
 
-async def enviar_relatorio_admin(update: Update, context: ContextTypes.DEFAULT_TYPE, pedido: dict):
-    """Envia todo relatório de pedido aprovado ao Admin 1 pelo Telegram."""
-    await fechar_semana_se_necessario(context.bot)
-    total_semanal_cliente = registrar_pedido_semanal(pedido)
-    em_revisao_manual = status_envio_plataforma(pedido) == "revisao_manual"
-    titulo = "PEDIDO EM REVISÃO MANUAL — TW STORE" if em_revisao_manual else "NOVO PEDIDO APROVADO — TW STORE"
-    enviado = await asyncio.to_thread(
-        enviar_relatorio_admin_documento_sync,
-        pedido,
-        total_semanal_cliente,
-        titulo,
-    )
-    if not enviado:
-        logging.error(
-            "O pedido %s foi concluído, mas o relatório não pôde ser enviado ao Admin 1.",
-            pedido.get("pedido_id"),
-        )
-    return enviado
-
-
 def main():
     if not BOT_TOKEN:
         raise RuntimeError("Configure a variável BOT_TOKEN com o token do BotFather.")
     reconstruir_pagamentos_processados_do_historico()
+    limpar_historico_perfil_semana_atual()
     limpar_pedidos_pendentes_salvos_no_startup()
     limpar_persistencia_transiente_no_startup()
     corrigir_pedidos_com_envio_interrompido()
@@ -10041,6 +10407,7 @@ def main():
     persistence = PicklePersistence(filepath=str(BOT_PERSISTENCE_PATH))
     app = Application.builder().token(BOT_TOKEN).persistence(persistence).post_init(iniciar_rotinas).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("perfil", perfil_vendedor))
     app.add_handler(CommandHandler("painel", painel_admin))
     app.add_handler(CallbackQueryHandler(callbacks))
     app.add_handler(MessageHandler((filters.PHOTO | filters.Document.ALL), receber_comprovante))
